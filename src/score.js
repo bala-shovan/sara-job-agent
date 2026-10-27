@@ -8,15 +8,20 @@ import { truncate, log } from './util.js';
 
 const FAMILIES = ['pm', 'support_engineer', 'support_lead', 'csm', 'other'];
 
-let candidateProfileCache;
-async function candidateProfile() {
-  if (!candidateProfileCache) {
-    candidateProfileCache = await readFile(new URL('../candidate-profile.md', import.meta.url), 'utf8');
+let fileProfileCache;
+// "About you" comes from the dashboard (profile.candidate_profile). The
+// candidate-profile.md file is only a fallback for older setups and tests.
+export async function candidateProfile(profile) {
+  if (profile?.candidate_profile?.trim()) return profile.candidate_profile.trim();
+  if (!fileProfileCache) {
+    fileProfileCache = await readFile(new URL('../candidate-profile.md', import.meta.url), 'utf8');
   }
-  return candidateProfileCache;
+  return fileProfileCache;
 }
 
-export function buildPrompt(profileText, jobs) {
+const list = (a = []) => a.filter(Boolean).join(', ');
+
+export function buildPrompt(profileText, jobs, profile) {
   const jobList = jobs.map((j, i) => ({
     id: i,
     title: j.title,
@@ -27,16 +32,24 @@ export function buildPrompt(profileText, jobs) {
     description: truncate(j.description, config.descriptionCharsForAi),
   }));
 
+  const roles = [...(profile?.role_families || [])].sort((a, b) => a.priority - b.priority);
+  const roleText = list(roles.map((r) => r.label)) || 'the roles described by the candidate';
+  const families = list(roles.map((r) => r.family));
+  const seniority = list(profile?.seniority) || 'mid, senior or lead';
+  const regions = list(profile?.locations?.remote_allowed) || 'worldwide';
+  const cities = list(profile?.locations?.onsite_cities);
+  const usOnly = profile?.exclusions?.drop_us_only_remote !== false;
+
   return `You are Sara, a careful job-matching assistant. Score how well each job fits this candidate.
 
 CANDIDATE
 ${profileText}
 
 SCORING RUBRIC (total 0-100)
-- Role match (0-35): title and duties match Product Manager/AI PM, Product Support Engineer, Support Lead, or Customer Success Manager.
-- Experience and seniority (0-25): fits 10+ years in B2B SaaS with about 1.5 years in PM; mid, senior or lead level.
-- Domain fit (0-20): B2B SaaS, logistics/delivery, martech/content platforms, AI products.
-- Location eligibility (0-20): open to someone living in Bangladesh (worldwide, APAC, or explicitly Bangladesh), or based in Dhaka. A remote job limited to US residents or requiring US work authorization gets 0 here and us_only = true.
+- Role match (0-35): title and duties match one of: ${roleText}.
+- Experience and seniority (0-25): fits the candidate's experience above; target level is ${seniority}.
+- Domain fit (0-20): matches industries and products the candidate has worked in, as described above.
+- Location eligibility (0-20): remote and open to candidates in ${regions}${cities ? `, or on-site/hybrid in ${cities}` : ''}.${usOnly ? ' A remote job limited to US residents or requiring US work authorization gets 0 here and us_only = true.' : ''}
 
 Be strict and honest. Do not inflate scores. Base every judgment only on the job text given.
 
@@ -44,7 +57,7 @@ JOBS
 ${JSON.stringify(jobList, null, 1)}
 
 Reply with JSON only, no prose, in exactly this shape:
-{"results":[{"id":0,"role_family":"pm|support_engineer|support_lead|csm|other","fit_score":0,"why_fit":"max 2 short sentences on why it fits this candidate","red_flags":"short text, or empty string","us_only":false}]}`;
+{"results":[{"id":0,"role_family":"${families ? families.replace(/, /g, '|') + '|other' : 'other'}","fit_score":0,"why_fit":"max 2 short sentences on why it fits this candidate","red_flags":"short text, or empty string","us_only":false}]}`;
 }
 
 async function callGemini(prompt) {
@@ -114,7 +127,7 @@ export async function scoreJobs(jobs, profile) {
   const errors = [];
   const scored = [];
   const hasAi = Boolean(config.geminiApiKey || config.groqApiKey);
-  const profileText = await candidateProfile();
+  const profileText = await candidateProfile(profile);
   let provider = hasAi ? 'ai' : 'heuristic';
 
   for (let i = 0; i < jobs.length; i += config.scoringBatchSize) {
@@ -122,7 +135,7 @@ export async function scoreJobs(jobs, profile) {
     let results = null;
 
     if (hasAi) {
-      const prompt = buildPrompt(profileText, batch);
+      const prompt = buildPrompt(profileText, batch, profile);
       const attempts = [
         config.geminiApiKey && ['gemini', callGemini],
         config.groqApiKey && ['groq', callGroq],

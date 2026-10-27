@@ -10,12 +10,18 @@ const LABELS = { pm: 'Product / AI PM', support_engineer: 'Product Support Engin
 
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-function dhakaDate(d = new Date()) {
-  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Dhaka' });
+function localDate(timeZone, d = new Date()) {
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone });
 }
 
-export function buildEmail(picks, stats) {
-  const date = dhakaDate();
+function greeting(timeZone, d = new Date()) {
+  const h = Number(d.toLocaleString('en-GB', { hour: 'numeric', hour12: false, timeZone }));
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+}
+
+export function buildEmail(picks, stats, profile = {}) {
+  const tz = profile.timezone || 'Asia/Dhaka';
+  const date = localDate(tz);
   const subject = picks.length
     ? `Sara: ${picks.length} job pick${picks.length > 1 ? 's' : ''} for ${date}`
     : `Sara: no strong matches today (${date})`;
@@ -31,14 +37,14 @@ export function buildEmail(picks, stats) {
     </td></tr>`).join('');
 
   const empty = `<tr><td style="padding:16px 0;font-size:14px;color:#374151;line-height:1.5">
-      Nothing cleared the quality bar today, so Sara isn't padding the list. She'll look again tomorrow morning.
+      Nothing cleared the quality bar today, so Sara isn't padding the list. She'll look again on her next run.
     </td></tr>`;
 
   const html = `<!doctype html><html><body style="margin:0;background:#f9fafb;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:10px;padding:8px 24px 24px">
     <tr><td style="padding:16px 0 8px">
-      <div style="font-size:20px;font-weight:700;color:#111827">Good morning, Bala</div>
+      <div style="font-size:20px;font-weight:700;color:#111827">${greeting(tz)}, Bala</div>
       <div style="font-size:14px;color:#6b7280">${esc(date)}: here ${picks.length === 1 ? 'is' : 'are'} today's ${picks.length || 'no'} pick${picks.length === 1 ? '' : 's'}.</div>
     </td></tr>
     ${picks.length ? cards : empty}
@@ -50,7 +56,7 @@ export function buildEmail(picks, stats) {
   </table></td></tr></table></body></html>`;
 
   const text = [
-    `Good morning, Bala. ${date}`,
+    `${greeting(tz)}, Bala. ${date}`,
     ...picks.map((j, i) => `\n${i + 1}. ${j.title} at ${j.company} (fit ${j.final_score})\n${j.why_fit}\n${j.url}`),
     picks.length ? '' : '\nNo strong matches today.',
   ].join('\n');
@@ -58,8 +64,8 @@ export function buildEmail(picks, stats) {
   return { subject, html, text };
 }
 
-export async function sendEmail(picks, stats) {
-  const email = buildEmail(picks, stats);
+export async function sendEmail(picks, stats, profile = {}) {
+  const email = buildEmail(picks, stats, profile);
 
   if (config.mock || !config.gmailUser || !config.gmailAppPassword) {
     await mkdir(new URL('../out/', import.meta.url), { recursive: true });
@@ -73,7 +79,7 @@ export async function sendEmail(picks, stats) {
   });
   await transport.sendMail({
     from: `Sara <${config.gmailUser}>`,
-    to: config.emailTo,
+    to: profile.email_to || config.emailTo,
     subject: email.subject,
     html: email.html,
     text: email.text,

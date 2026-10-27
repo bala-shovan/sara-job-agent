@@ -4,7 +4,7 @@ import { FAMILY_LABELS, greeting, prettyDay, timeOf } from '../lib/format';
 import JobActions from './JobActions';
 import { Flag } from './Icons';
 
-export default function Today({ sara, goTo }) {
+export default function Today({ sara, goTo, next }) {
   // A run saves all its picks within moments, so "the latest picks" are the
   // ones found within a few hours of the newest pick.
   const picks = sara.jobs.filter((j) => j.is_pick && j.source !== 'manual');
@@ -26,14 +26,14 @@ export default function Today({ sara, goTo }) {
             {run.after_filter} passed your filters and <strong>{run.picked} made the cut</strong>.
           </p>
         ) : (
-          <p>Sara hasn't run yet. Her first picks arrive after the next 9:00 AM run.</p>
+          <p>Sara hasn't run yet. {next ? `Her first picks arrive ${next}.` : 'Resume her in Settings to get picks.'}</p>
         )}
       </div>
 
       {shown.length === 0 ? (
         <div className="empty">
           <h2>No picks yet</h2>
-          <p>When Sara finds jobs that clear your quality bar, they'll appear here and in your 9:00 AM email. Found one yourself?</p>
+          <p>When Sara finds jobs that clear your quality bar, they'll appear here and in your email{next ? `, next ${next}` : ''}. Found one yourself?</p>
           <button className="btn btn-primary" onClick={() => goTo('add')}>Add a job</button>
         </div>
       ) : (

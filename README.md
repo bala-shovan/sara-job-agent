@@ -1,13 +1,14 @@
 # Sara — AI job search agent
 
-Sara finds the **5 best-matching new jobs every morning at 9:00 AM Dhaka time** and emails them to me with apply links. She runs entirely on free tiers ($0/month).
+Sara is a job-search agent you **hire from a dashboard**. You tell her about your experience, the jobs you want and when you want alerts; she checks job boards and company careers pages on that schedule and emails the best matches with apply links. She runs entirely on free tiers ($0/month).
 
 Built by Anik Shovan (Bala) as a portfolio project: from PRD to architecture to a shipped, working agent.
 
 ## How Sara works
 
 ```
-GitHub Actions (cron, 9:00 AM Dhaka)
+GitHub Actions (wakes hourly)
+  → is Sara due? (on duty, a work day, past the chosen hour, not run yet today; all set on the dashboard)
   → fetch jobs: Remote OK, Remotive, Himalayas + 30-company watchlist (Greenhouse, Ashby, Lever)
   → normalize into one schema
   → dedupe against every job seen before (URL, source id, company + title)
@@ -35,7 +36,8 @@ GitHub Actions (cron, 9:00 AM Dhaka)
 
 | Path | What it does |
 | --- | --- |
-| `src/index.js` | The daily run, start to finish |
+| `src/due.js`, `src/schedule.js` | The hourly "is Sara due?" check against the dashboard schedule |
+| `src/index.js` | A run, start to finish |
 | `src/sources/boards.js` | Remote OK, Remotive, Himalayas (BDJobs stub) |
 | `src/sources/ats.js` | Watchlist companies on Greenhouse, Ashby, Lever, with auto-detection |
 | `src/filter.js` | Code filters and pay parsing |
@@ -43,18 +45,21 @@ GitHub Actions (cron, 9:00 AM Dhaka)
 | `src/rank.js` | Ranking and picking |
 | `src/db.js` | Supabase storage (and an in-memory store for tests) |
 | `src/email.js` | The morning email |
-| `candidate-profile.md` | What Sara scores jobs against (edit freely) |
+| `candidate-profile.md` | Fallback profile; the real one is set in the dashboard's About you |
 | `supabase/schema.sql` | Database tables, search profile, watchlist, security rules |
+| `supabase/002_hire_sara.sql` | Adds hiring, schedule, alert email and About you to the profile |
 | `fixtures/sample-jobs.json` | Fictional jobs that exercise every rule |
 
 ## Dashboard
 
-`dashboard/` is a Next.js app where I review Sara's picks and track every application:
+`dashboard/` is a Next.js app where I hire Sara, configure her and track every application:
+
+- **Hire Sara**: a four-step setup (About you, Jobs you want, Alerts, Hire) that switches her on
 
 - **Today**: the morning's picks with fit score, why each fits, red flags, and one-click Mark applied, Not interested and good/bad ratings
 - **Pipeline**: every kept job on a route from New to Applied, Interview scheduled and Offer, with notes and a progress tracker per job
 - **Add a job**: track roles found elsewhere, such as LinkedIn
-- **Sara's brief**: edit target roles, priority bonuses, pay floor, regions and the company watchlist without touching code
+- **Settings**: pause or resume Sara, and edit everything from setup (roles and their priority, levels, regions, pay floor, schedule, alert email) plus the company watchlist, without touching code
 - **Activity**: each run's funnel, from jobs fetched to picks, plus any source errors
 
 Signed out, it shows a **demo with fictional sample jobs**, so the public link is safe for a portfolio. Signing in (email magic link) shows real data; Row Level Security limits it to the owner's email.
@@ -69,7 +74,7 @@ npm run dev       # demo mode works with no keys; add .env.local (see .env.examp
 
 ```bash
 npm install
-npm test          # 24 checks on sample jobs, no network or keys needed
+npm test          # 31 checks on sample jobs and the schedule, no network or keys needed
 npm run dry-run   # full run on sample jobs; writes out/email-preview.html
 npm start         # real run (needs the environment variables in .env.example)
 ```
@@ -78,9 +83,9 @@ In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **A
 
 ## Setup
 
-1. Run `supabase/schema.sql` in the Supabase SQL Editor.
+1. Run `supabase/schema.sql`, then `supabase/002_hire_sara.sql`, in the Supabase SQL Editor.
 2. Add repository secrets (Settings → Secrets and variables → Actions): `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GEMINI_API_KEY`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and optionally `GROQ_API_KEY`.
-3. Trigger the workflow once by hand and check the run log in the `runs` table.
+3. Deploy `dashboard/` to Vercel, sign in and hire Sara. To run her right away, use **Actions → Sara daily run → Run workflow**.
 
 ## Free-tier notes
 
@@ -91,6 +96,7 @@ In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **A
 ## Roadmap
 
 1. **Find (MVP)**: daily picks by email ✓
-2. **Track**: dashboard to mark Applied, add jobs found elsewhere (e.g. LinkedIn), rate picks ← *here*
-3. **Interviews**: read-only Gmail scan for employer replies, interview reminders
-4. **Portfolio**: public demo mode with sample data, walkthrough video, case study
+2. **Track**: dashboard to mark Applied, add jobs found elsewhere (e.g. LinkedIn), rate picks ✓
+3. **Hire and configure**: set up and schedule Sara entirely from the dashboard ✓
+4. **Interviews**: read-only Gmail scan for employer replies, interview reminders
+5. **Portfolio**: public demo mode with sample data, walkthrough video, case study

@@ -103,7 +103,7 @@ export async function run() {
     // Save every scored job (so it's never re-scored) with picks flagged
     await store.saveJobs(ranked);
 
-    const mail = await sendEmail(picks, { ...stats, errorCount: errors.length });
+    const mail = await sendEmail(picks, { ...stats, errorCount: errors.length }, profile);
     log(mail.sent ? `Email sent: "${mail.subject}"` : `Email preview written to ${mail.preview}: "${mail.subject}"`);
 
     const status = errors.length ? 'partial' : 'success';

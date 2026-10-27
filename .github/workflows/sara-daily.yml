@@ -2,9 +2,11 @@ name: Sara daily run
 
 on:
   schedule:
-    # 03:00 UTC = 9:00 AM Dhaka. GitHub may start scheduled runs a few minutes late.
-    - cron: "0 3 * * *"
-  # Lets you run Sara on demand from the Actions tab ("Run workflow")
+    # Sara wakes every hour and checks the schedule you set on the dashboard
+    # (time, days, time zone, paused or on duty). Most wake-ups finish in
+    # seconds without working. Minute 17 avoids GitHub's busy top of the hour.
+    - cron: "17 * * * *"
+  # "Run workflow" button: runs Sara right now, whatever the schedule says
   workflow_dispatch:
 
 permissions:
@@ -24,14 +26,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - run: npm ci
+      - name: Is Sara due?
+        id: due
+        run: node src/due.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SARA_FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
+
+      - if: steps.due.outputs.due == 'true'
+        run: npm ci
 
       - name: Run tests
+        if: steps.due.outputs.due == 'true'
         run: npm test
 
       - name: Run Sara
+        if: steps.due.outputs.due == 'true'
         run: npm start
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

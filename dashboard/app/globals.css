@@ -266,3 +266,73 @@ thead th { border-top: 0; color: var(--muted); font-weight: 700; }
   .row-detail { animation: open 0.18s ease-out; }
   @keyframes open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 }
+
+/* ---------- Hire Sara and Settings ---------- */
+fieldset.field { border: 0; padding: 0; margin: 0; min-width: 0; }
+legend.label { padding: 0; margin-bottom: 6px; font-weight: 700; font-size: var(--step--1); }
+.hint-warn { color: var(--flag); }
+.field textarea.tall { min-height: 200px; line-height: 1.5; }
+code { font-size: 0.9em; padding: 1px 5px; border-radius: 4px; background: var(--surface); }
+
+.hire { max-width: 720px; }
+.hire-intro h1 { font-size: var(--step-3); font-weight: 750; letter-spacing: -0.025em; }
+.hire-intro p { color: var(--muted); font-size: var(--step-1); max-width: 60ch; margin: 8px 0 0; }
+.hire-card { max-width: none; margin-top: 18px; }
+.hire-card h2 { font-size: var(--step-2); }
+
+/* The setup steps reuse the route idea from the pipeline */
+.steps { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); margin: 28px 0 0; padding: 0; position: relative; }
+.steps::before { content: ''; position: absolute; left: 12.5%; right: 12.5%; top: 17px; height: 3px; background: repeating-linear-gradient(90deg, var(--line) 0 10px, transparent 10px 16px); }
+.steps button { position: relative; background: none; border: 0; padding: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: var(--step--1); color: var(--muted); cursor: default; }
+.steps li.done button { cursor: pointer; color: var(--ink); }
+.steps li.current button { color: var(--ink); font-weight: 700; }
+.step-dot { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 3px solid var(--line); font-family: var(--font-display); font-weight: 700; }
+.steps li.done .step-dot { border-color: var(--go); background: var(--go); color: var(--go-ink); }
+.steps li.current .step-dot { border-color: var(--go); box-shadow: 0 0 0 5px var(--go-soft); }
+
+.roles { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.role { border: 1px solid var(--line); border-radius: var(--radius-s); padding: 10px 12px; background: var(--surface); }
+.role-off { background: transparent; border-style: dashed; }
+.role-off strong { color: var(--muted); }
+.role-main { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+.role-check { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+.role-check input { width: 18px; height: 18px; accent-color: var(--go); }
+.role-check > span { display: grid; }
+.role-check strong { font-family: var(--font-display); font-weight: 650; }
+.role-tools { display: flex; gap: 2px; }
+.role-tools .btn { padding: 6px 8px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 14px; cursor: pointer; font-size: var(--step--1); }
+.chip[aria-pressed='true'] { background: var(--go); border-color: var(--go); color: var(--go-ink); font-weight: 700; }
+.toggle { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: var(--step--1); }
+.toggle input { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--go); flex: none; }
+
+.review { margin: 0; display: grid; gap: 0; border: 1px solid var(--line); border-radius: var(--radius-s); }
+.review > div { display: grid; grid-template-columns: 140px 1fr; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--line); }
+.review > div:first-child { border-top: 0; }
+.review dt { color: var(--muted); font-size: var(--step--1); }
+.review dd { margin: 0; white-space: pre-line; }
+.btn-big { padding: 11px 22px; font-size: var(--step-0); }
+
+.status-card { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 20px; padding: 18px 20px; border-radius: var(--radius-m); background: var(--go-soft); border: 1px solid var(--go); }
+.status-card.off { background: var(--new-soft); border-color: var(--new); }
+.status-card h2 { font-size: var(--step-1); }
+.status-card p { margin: 4px 0 0; }
+
+.savebar { position: sticky; bottom: 12px; z-index: 5; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-radius: var(--radius-m); background: var(--surface); border: 1px solid var(--line); font-size: var(--step--1); color: var(--muted); }
+.savebar.show { border-color: var(--go); box-shadow: 0 6px 24px rgb(0 0 0 / 0.12); color: var(--ink); }
+
+.duty { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; cursor: pointer; color: var(--muted); font-size: var(--step--1); padding: 4px 6px; border-radius: var(--radius-s); }
+.duty:hover { color: var(--ink); }
+.duty-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--go); }
+.duty.off .duty-dot { background: var(--new); }
+
+@media (max-width: 640px) {
+  .duty { display: none; }
+  .steps button span:last-child { font-size: 0.75rem; }
+  .review > div { grid-template-columns: 1fr; gap: 2px; }
+}
+.hint { color: var(--muted); font-size: var(--step--1); margin: 0; font-weight: 400; }
+.role-check { font-weight: 400; }
+.form-actions .hint { margin-left: 4px; }

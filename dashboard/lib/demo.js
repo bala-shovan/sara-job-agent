@@ -98,6 +98,17 @@ export const demoProfile = {
   picks_per_day: 5,
   min_final_score: 60,
   run_time: '09:00 Asia/Dhaka',
+  candidate_profile: `Product Owner at a last-mile delivery and fleet management SaaS. Shipped bulk route optimization (helped win $45K and $250K ARR customers), an AI support chat, driver auto-assignment and integrations with Uber, DoorDash and Twilio Flex. Certified Scrum Product Owner.
+
+Before that, about 7 years at Optimizely: support engineer, senior support engineer, then APAC support manager leading 12 engineers across Dhaka, Hanoi and Australia. Debugged APIs in Postman, read logs in Kibana, traced bugs on GitHub, wrote Jira escalations.
+
+Based in Dhaka. Open to remote roles worldwide or in APAC, and on-site or hybrid roles in Dhaka. Happy to work US hours.`,
+  active: true,
+  hired_at: ago(1),
+  run_hour: 9,
+  run_days: [1, 2, 3, 4, 5, 6, 7],
+  timezone: 'Asia/Dhaka',
+  email_to: 'you@example.com',
 };
 
 export const demoCompanies = [

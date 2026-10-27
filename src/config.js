@@ -54,4 +54,12 @@ export const defaultProfile = {
   picks_per_day: 5,
   min_final_score: 60,
   run_time: '09:00 Asia/Dhaka',
+  // Set from the dashboard (supabase/002_hire_sara.sql)
+  candidate_profile: null, // null = fall back to candidate-profile.md
+  active: true,
+  hired_at: '2026-10-27T00:00:00Z',
+  run_hour: 9,
+  run_days: [1, 2, 3, 4, 5, 6, 7],
+  timezone: 'Asia/Dhaka',
+  email_to: null,
 };
