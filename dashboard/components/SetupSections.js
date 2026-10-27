@@ -5,6 +5,11 @@ import { DAYS, SENIORITY, hourLabel, timeZones, PRIORITY_BONUS } from '../lib/se
 
 export function AboutYou({ draft, set }) {
   return (
+    <>
+    <div className="field">
+      <label htmlFor="name">Your first name</label>
+      <input id="name" autoComplete="given-name" value={draft.display_name} onChange={(e) => set({ display_name: e.target.value })} style={{ maxWidth: 320 }} />
+    </div>
     <div className="field">
       <label htmlFor="about">Your experience</label>
       <p className="hint">
@@ -13,11 +18,12 @@ export function AboutYou({ draft, set }) {
       </p>
       <textarea
         id="about" className="tall" value={draft.candidate_profile}
-        placeholder="Product Owner at a last-mile delivery SaaS. Shipped route optimization and an AI support chat. 7 years in technical support at Optimizely, led a team of 12…"
+        placeholder="Senior product manager, 6 years in B2B SaaS. Led payments and onboarding at a fintech, shipped an AI assistant. Based in Singapore, open to remote roles in APAC…"
         onChange={(e) => set({ candidate_profile: e.target.value })}
       />
       <p className="hint">{draft.candidate_profile.trim().split(/\s+/).filter(Boolean).length} words</p>
     </div>
+    </>
   );
 }
 

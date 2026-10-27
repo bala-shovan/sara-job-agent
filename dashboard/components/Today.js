@@ -19,14 +19,14 @@ export default function Today({ sara, goTo, next }) {
   return (
     <section aria-labelledby="today-heading">
       <div className="hello">
-        <h1 id="today-heading">{greeting()}, Bala</h1>
+        <h1 id="today-heading">{greeting()}{sara.profile?.display_name ? `, ${sara.profile.display_name}` : ''}</h1>
         {run ? (
           <p>
             Sara checked <strong>{run.fetched.toLocaleString()} jobs</strong> at {timeOf(run.started_at)} on {prettyDay(run.started_at)}.{' '}
             {run.after_filter} passed your filters and <strong>{run.picked} made the cut</strong>.
           </p>
         ) : (
-          <p>Sara hasn't run yet. {next ? `Her first picks arrive ${next}.` : 'Resume her in Settings to get picks.'}</p>
+          <p>Sara hasn't run yet. {next ? `Her first picks arrive ${next}.` : 'Resume her in Settings to get picks.'} She'll email them to you too.</p>
         )}
       </div>
 

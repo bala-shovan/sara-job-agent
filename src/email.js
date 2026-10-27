@@ -21,6 +21,7 @@ function greeting(timeZone, d = new Date()) {
 
 export function buildEmail(picks, stats, profile = {}) {
   const tz = profile.timezone || 'Asia/Dhaka';
+  const name = esc(profile.display_name || 'there');
   const date = localDate(tz);
   const subject = picks.length
     ? `Sara: ${picks.length} job pick${picks.length > 1 ? 's' : ''} for ${date}`
@@ -44,7 +45,7 @@ export function buildEmail(picks, stats, profile = {}) {
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:10px;padding:8px 24px 24px">
     <tr><td style="padding:16px 0 8px">
-      <div style="font-size:20px;font-weight:700;color:#111827">${greeting(tz)}, Bala</div>
+      <div style="font-size:20px;font-weight:700;color:#111827">${greeting(tz)}, ${name}</div>
       <div style="font-size:14px;color:#6b7280">${esc(date)}: here ${picks.length === 1 ? 'is' : 'are'} today's ${picks.length || 'no'} pick${picks.length === 1 ? '' : 's'}.</div>
     </td></tr>
     ${picks.length ? cards : empty}
@@ -56,7 +57,7 @@ export function buildEmail(picks, stats, profile = {}) {
   </table></td></tr></table></body></html>`;
 
   const text = [
-    `${greeting(tz)}, Bala. ${date}`,
+    `${greeting(tz)}, ${profile.display_name || 'there'}. ${date}`,
     ...picks.map((j, i) => `\n${i + 1}. ${j.title} at ${j.company} (fit ${j.final_score})\n${j.why_fit}\n${j.url}`),
     picks.length ? '' : '\nNo strong matches today.',
   ].join('\n');

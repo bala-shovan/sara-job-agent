@@ -336,3 +336,26 @@ code { font-size: 0.9em; padding: 1px 5px; border-radius: 4px; background: var(-
 .hint { color: var(--muted); font-size: var(--step--1); margin: 0; font-weight: 400; }
 .role-check { font-weight: 400; }
 .form-actions .hint { margin-left: 4px; }
+
+/* ---------- Welcome (signed out) ---------- */
+.welcome { display: grid; grid-template-columns: 1.25fr 1fr; gap: 48px; align-items: start; padding-top: 28px; }
+.welcome-copy h1 { font-size: clamp(2rem, 4.4vw, 3.25rem); font-weight: 750; letter-spacing: -0.03em; line-height: 1.05; max-width: 15ch; }
+.lede { font-size: var(--step-1); color: var(--muted); max-width: 44ch; margin: 16px 0 0; }
+.how { list-style: none; margin: 36px 0 0; padding: 0; display: grid; gap: 0; position: relative; }
+.how li { display: grid; grid-template-columns: 36px 1fr; gap: 14px; padding-bottom: 22px; position: relative; }
+/* the route line linking the three stops */
+.how li:not(:last-child)::before { content: ''; position: absolute; left: 17px; top: 38px; bottom: 0; width: 3px; background: repeating-linear-gradient(180deg, var(--go) 0 8px, transparent 8px 14px); opacity: 0.55; }
+.how .step-dot { border-color: var(--go); }
+.how strong { font-family: var(--font-display); font-size: 1.0625rem; }
+.how p { margin: 4px 0 0; color: var(--muted); max-width: 50ch; }
+.welcome-signin h2 { font-size: var(--step-2); }
+.welcome-signin .form { margin-top: 14px; }
+.linkish { background: none; border: 0; padding: 0; color: var(--go); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font: inherit; }
+.who { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 820px) {
+  .welcome { grid-template-columns: 1fr; gap: 28px; padding-top: 8px; }
+}
+@media (max-width: 640px) {
+  .who { display: none; }
+}

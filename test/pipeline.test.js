@@ -15,7 +15,8 @@ const { sanitize } = await import('../src/score.js');
 const { defaultProfile } = await import('../src/config.js');
 
 const fixtures = JSON.parse(await readFile(new URL('../fixtures/sample-jobs.json', import.meta.url), 'utf8'));
-const result = await run();
+const all = await run();
+const result = { ...all.users[0], store: all.store };
 const rankedUrls = new Set(result.ranked.map((j) => j.url));
 const pickUrls = new Set(result.picks.map((j) => j.url));
 
@@ -45,6 +46,7 @@ test('apply links come from the source, never the AI', () => {
 
 test('run log records counts and email preview', () => {
   const runLog = result.store.runs[0];
+  assert.equal(runLog.user_id, 'mock-user');
   assert.equal(runLog.fetched, fixtures.jobs.length);
   assert.equal(runLog.picked, result.picks.length);
   assert.equal(runLog.email_sent, false);

@@ -82,6 +82,7 @@ export const demoRuns = [
 
 export const demoProfile = {
   id: 1,
+  display_name: 'Bala',
   role_families: [
     { priority: 1, family: 'pm', label: 'Product Manager / AI PM', bonus: 15,
       title_keywords: ['product manager', 'product owner', 'ai product', 'technical product manager', 'product lead'] },

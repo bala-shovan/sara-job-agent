@@ -1,8 +1,9 @@
-// Step 0 of every hourly wake-up: should Sara work now?
-// Reads the schedule from Supabase with a plain HTTP call (no npm install
-// needed), prints the reason, and tells GitHub Actions whether to continue.
+// Step 0 of every hourly wake-up: is anyone's Sara due right now?
+// Reads every hired Sara's schedule from Supabase with plain HTTP calls (no
+// npm install needed) and tells GitHub Actions whether to continue. The full
+// run then works only for the people who are due.
 //
-//   node src/due.js            -> due=true|false
+//   node src/due.js              -> due=true|false
 //   SARA_FORCE=1 node src/due.js -> always due (the "Run workflow" button)
 
 import { appendFileSync } from 'node:fs';
@@ -29,12 +30,17 @@ try {
   if (process.env.SARA_FORCE === '1') {
     output(true, 'started by hand');
   } else {
-    const [profile] = await rest('profile?id=eq.1&select=*');
-    const tz = profile?.timezone || 'Asia/Dhaka';
-    const since = localDayStartUtc(new Date(), tz).toISOString();
-    const runs = await rest(`runs?select=status&started_at=gte.${encodeURIComponent(since)}`);
-    const { due, reason } = isDue(profile, runs);
-    output(due, reason);
+    const profiles = await rest('profile?select=*&hired_at=not.is.null');
+    const reasons = [];
+    let anyDue = false;
+    for (const p of profiles) {
+      const since = localDayStartUtc(new Date(), p.timezone || 'Asia/Dhaka').toISOString();
+      const runs = await rest(`runs?select=status&user_id=eq.${p.user_id}&started_at=gte.${encodeURIComponent(since)}`);
+      const { due, reason } = isDue(p, runs);
+      reasons.push(`${p.display_name || 'someone'}: ${reason}`);
+      anyDue ||= due;
+    }
+    output(anyDue, reasons.join('; ') || 'nobody has hired Sara yet');
   }
 } catch (e) {
   // If the check itself fails, don't run blind; the next hour tries again.

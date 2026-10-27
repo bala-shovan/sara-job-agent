@@ -2,11 +2,12 @@ name: Sara daily run
 
 on:
   schedule:
-    # Sara wakes every hour and checks the schedule you set on the dashboard
-    # (time, days, time zone, paused or on duty). Most wake-ups finish in
-    # seconds without working. Minute 17 avoids GitHub's busy top of the hour.
+    # Sara wakes every hour and checks each person's schedule from the
+    # dashboard (time, days, time zone, paused or on duty), then works only
+    # for those who are due. Most wake-ups finish in seconds. Minute 17
+    # avoids GitHub's busy top of the hour.
     - cron: "17 * * * *"
-  # "Run workflow" button: runs Sara right now, whatever the schedule says
+  # "Run workflow" button: runs every on-duty Sara right now, whatever the schedule says
   workflow_dispatch:
 
 permissions:
@@ -53,3 +54,4 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
+          SARA_FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}

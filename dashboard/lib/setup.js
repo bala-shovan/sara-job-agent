@@ -41,6 +41,42 @@ function autoSkipWords(seniority) {
   ];
 }
 
+export const OWNER_EMAIL = 'anikshovan@gmail.com';
+
+// Starting point for someone hiring Sara for the first time
+export function blankProfile(email = '') {
+  return {
+    display_name: '',
+    candidate_profile: '',
+    role_families: ROLE_CATALOG.slice(0, 1).map((r, i) => ({
+      priority: i + 1, family: r.family, label: r.label, bonus: PRIORITY_BONUS[i], title_keywords: r.keywords,
+    })),
+    seniority: ['mid', 'senior'],
+    locations: { remote_allowed: ['worldwide', 'anywhere'], onsite_cities: [] },
+    exclusions: { drop_us_only_remote: false, drop_title_words: ['intern', 'internship', 'junior', 'entry level', 'director', 'vp', 'vice president', 'head of'] },
+    min_monthly_usd: 0,
+    picks_per_day: 5,
+    min_final_score: 60,
+    run_hour: 9,
+    run_days: [1, 2, 3, 4, 5],
+    timezone: (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } })(),
+    email_to: email,
+    active: false,
+    hired_at: null,
+  };
+}
+
+// Companies every new Sara watches; edit the list in Settings
+export const DEFAULT_WATCHLIST = [
+  ['GitLab', 'Remote-first SaaS'], ['Zapier', 'Remote-first SaaS'], ['Buffer', 'Remote-first SaaS'],
+  ['Canonical', 'Remote-first SaaS'], ['Close', 'Remote-first SaaS'], ['Hubstaff', 'Remote-first SaaS'],
+  ['Help Scout', 'Remote-first SaaS'], ['Supabase', 'Remote-first SaaS'], ['PostHog', 'Remote-first SaaS'],
+  ['RevenueCat', 'Remote-first SaaS'], ['Ashby', 'Remote-first SaaS'], ['Deel', 'Remote-first SaaS'],
+  ['Remote', 'Remote-first SaaS'], ['Oyster', 'Remote-first SaaS'], ['Field Nation', 'Remote-first SaaS'],
+  ['Bringg', 'Logistics and delivery'], ['project44', 'Logistics and delivery'], ['Contentful', 'Content and martech'],
+  ['Storyblok', 'Content and martech'], ['Sanity', 'Content and martech'], ['Intercom', 'AI support'],
+];
+
 export function draftFromProfile(p) {
   const chosen = [...(p.role_families || [])].sort((a, b) => a.priority - b.priority);
   const roles = [
@@ -51,6 +87,7 @@ export function draftFromProfile(p) {
   const seniority = p.seniority?.length ? p.seniority : ['mid', 'senior', 'lead'];
   const auto = new Set(autoSkipWords(seniority));
   return {
+    display_name: p.display_name || '',
     candidate_profile: p.candidate_profile || '',
     roles,
     seniority,
@@ -71,6 +108,7 @@ export function draftFromProfile(p) {
 export function patchFromDraft(d, p) {
   const enabled = d.roles.filter((r) => r.enabled);
   return {
+    display_name: d.display_name.trim() || null,
     candidate_profile: d.candidate_profile.trim() || null,
     role_families: enabled.map((r, i) => ({
       priority: i + 1, family: r.family, label: r.label, bonus: PRIORITY_BONUS[i] ?? 0, title_keywords: toList(r.keywords),
@@ -95,7 +133,8 @@ export function patchFromDraft(d, p) {
 // What's missing before Sara can be hired, step by step
 export function problems(d) {
   return {
-    about: d.candidate_profile.trim().length < 80 ? 'Tell Sara a little more about your experience (a few lines at least).' : null,
+    about: !d.display_name.trim() ? 'Add your first name, so Sara knows who she works for.'
+      : d.candidate_profile.trim().length < 80 ? 'Tell Sara a little more about your experience (a few lines at least).' : null,
     jobs: !d.roles.some((r) => r.enabled) ? 'Choose at least one role.'
       : !d.seniority.length ? 'Choose at least one level.'
       : (!d.remote_allowed.trim() && !d.onsite_cities.trim()) ? 'Add a remote region or a city.' : null,

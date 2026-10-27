@@ -1,6 +1,6 @@
 # Sara — AI job search agent
 
-Sara is a job-search agent you **hire from a dashboard**. You tell her about your experience, the jobs you want and when you want alerts; she checks job boards and company careers pages on that schedule and emails the best matches with apply links. She runs entirely on free tiers ($0/month).
+Sara is an invite-only job-search agent you **hire from a dashboard**: each invited person signs in and gets their own private Sara. You tell her about your experience, the jobs you want and when you want alerts; she checks job boards and company careers pages on that schedule and emails the best matches with apply links. She runs entirely on free tiers ($0/month).
 
 Built by Anik Shovan (Bala) as a portfolio project: from PRD to architecture to a shipped, working agent.
 
@@ -8,9 +8,10 @@ Built by Anik Shovan (Bala) as a portfolio project: from PRD to architecture to 
 
 ```
 GitHub Actions (wakes hourly)
-  → is Sara due? (on duty, a work day, past the chosen hour, not run yet today; all set on the dashboard)
-  → fetch jobs: Remote OK, Remotive, Himalayas + 30-company watchlist (Greenhouse, Ashby, Lever)
+  → whose Sara is due? (each person's own days, hour and time zone; on duty; not run yet today)
+  → fetch jobs ONCE for everyone: Remote OK, Remotive, Himalayas + everyone's watchlists (Greenhouse, Ashby, Lever)
   → normalize into one schema
+  then, for each person due, with their own settings:
   → dedupe against every job seen before (URL, source id, company + title)
   → filter in code: role keywords, seniority, location, US-only, pay floor, age
   → score with AI (Gemini, Groq fallback): 0–100 fit + "why it fits" + red flags
@@ -48,6 +49,7 @@ GitHub Actions (wakes hourly)
 | `candidate-profile.md` | Fallback profile; the real one is set in the dashboard's About you |
 | `supabase/schema.sql` | Database tables, search profile, watchlist, security rules |
 | `supabase/002_hire_sara.sql` | Adds hiring, schedule, alert email and About you to the profile |
+| `supabase/003_multi_user.sql` | One Sara per person: user_id on every table, per-user security, invite list (max 5), sign-up gate |
 | `fixtures/sample-jobs.json` | Fictional jobs that exercise every rule |
 
 ## Dashboard
@@ -62,7 +64,7 @@ GitHub Actions (wakes hourly)
 - **Settings**: pause or resume Sara, and edit everything from setup (roles and their priority, levels, regions, pay floor, schedule, alert email) plus the company watchlist, without touching code
 - **Activity**: each run's funnel, from jobs fetched to picks, plus any source errors
 
-Signed out, it shows a **demo with fictional sample jobs**, so the public link is safe for a portfolio. Signing in (email magic link) shows real data; Row Level Security limits it to the owner's email.
+Signed out, visitors see a welcome page with sign-in and a **demo with fictional sample jobs**. Sign-in is an email magic link, and only emails on the owner's invite list (up to 5, managed in Settings) can create an account; a database trigger enforces it. Row Level Security gives each person access to their own rows only.
 
 ```bash
 cd dashboard
@@ -74,7 +76,7 @@ npm run dev       # demo mode works with no keys; add .env.local (see .env.examp
 
 ```bash
 npm install
-npm test          # 31 checks on sample jobs and the schedule, no network or keys needed
+npm test          # 32 checks on sample jobs and the schedule, no network or keys needed
 npm run dry-run   # full run on sample jobs; writes out/email-preview.html
 npm start         # real run (needs the environment variables in .env.example)
 ```
@@ -83,7 +85,7 @@ In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **A
 
 ## Setup
 
-1. Run `supabase/schema.sql`, then `supabase/002_hire_sara.sql`, in the Supabase SQL Editor.
+1. Run `supabase/schema.sql` and `002_hire_sara.sql` in the Supabase SQL Editor, sign in to the dashboard once as the owner, then run `003_multi_user.sql`.
 2. Add repository secrets (Settings → Secrets and variables → Actions): `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GEMINI_API_KEY`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and optionally `GROQ_API_KEY`.
 3. Deploy `dashboard/` to Vercel, sign in and hire Sara. To run her right away, use **Actions → Sara daily run → Run workflow**.
 
@@ -98,5 +100,6 @@ In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **A
 1. **Find (MVP)**: daily picks by email ✓
 2. **Track**: dashboard to mark Applied, add jobs found elsewhere (e.g. LinkedIn), rate picks ✓
 3. **Hire and configure**: set up and schedule Sara entirely from the dashboard ✓
-4. **Interviews**: read-only Gmail scan for employer replies, interview reminders
-5. **Portfolio**: public demo mode with sample data, walkthrough video, case study
+4. **Multi-user**: invite-only, one private Sara per person ✓
+5. **Interviews**: read-only Gmail scan for employer replies, interview reminders
+6. **Portfolio**: public demo mode with sample data, walkthrough video, case study

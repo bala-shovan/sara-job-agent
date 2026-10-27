@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { draftFromProfile, patchFromDraft, problems, hourLabel, daysLabel, SENIORITY } from '../lib/setup';
+import { draftFromProfile, patchFromDraft, problems, hourLabel, daysLabel, SENIORITY, blankProfile, nextRunLabel } from '../lib/setup';
 import { AboutYou, JobsYouWant, Alerts } from './SetupSections';
 
 const STEPS = [
@@ -14,6 +14,7 @@ const STEPS = [
 function Review({ draft }) {
   const roles = draft.roles.filter((r) => r.enabled);
   const rows = [
+    ['Name', draft.display_name],
     ['Roles', roles.map((r, i) => `${i + 1}. ${r.label}`).join('\n')],
     ['Levels', SENIORITY.filter((x) => draft.seniority.includes(x.value)).map((x) => x.label).join(', ')],
     ['Remote', draft.remote_allowed || 'None'],
@@ -30,9 +31,10 @@ function Review({ draft }) {
 }
 
 export default function Hire({ sara, onDone, onCancel }) {
+  const base = sara.profile || blankProfile(sara.email);
   const [draft, setDraft] = useState(() => {
-    const d = draftFromProfile(sara.profile);
-    if (!d.email_to && sara.session?.user?.email) d.email_to = sara.session.user.email;
+    const d = draftFromProfile(base);
+    if (!d.email_to && sara.email) d.email_to = sara.email;
     return d;
   });
   const [step, setStep] = useState(0);
@@ -44,14 +46,16 @@ export default function Hire({ sara, onDone, onCancel }) {
 
   async function hire() {
     setSaving(true);
-    const ok = await sara.saveProfile({
-      ...patchFromDraft(draft, sara.profile),
+    const patch = {
+      ...patchFromDraft(draft, base),
       active: true,
-      hired_at: sara.profile.hired_at || new Date().toISOString(),
-    });
+      hired_at: base.hired_at || new Date().toISOString(),
+    };
+    const ok = await sara.saveProfile(patch);
     setSaving(false);
     if (ok) {
-      sara.notify(`Sara is hired. Her first picks arrive at ${hourLabel(draft.run_hour)} on her next work day.`);
+      const next = nextRunLabel({ ...base, ...patch }, sara.runs);
+      sara.notify(`Sara is hired, ${draft.display_name.trim()}. Her first picks arrive ${next || 'on her next run'}.`);
       onDone();
     }
   }
@@ -59,7 +63,7 @@ export default function Hire({ sara, onDone, onCancel }) {
   return (
     <section className="hire" aria-labelledby="hire-heading">
       <div className="hire-intro">
-        <h1 id="hire-heading">Hire Sara</h1>
+        <h1 id="hire-heading">{sara.profile?.hired_at ? 'Hire Sara' : 'Hire your Sara'}</h1>
         <p>Sara is a job-search agent. Tell her what you're looking for and she'll check job boards and company careers pages on your schedule, then send you the best matches.</p>
       </div>
 

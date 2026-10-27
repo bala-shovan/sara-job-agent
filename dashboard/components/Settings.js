@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { draftFromProfile, patchFromDraft, problems, nextRunLabel, hourLabel, daysLabel } from '../lib/setup';
 import { AboutYou, JobsYouWant, Alerts } from './SetupSections';
 import Watchlist from './Watchlist';
+import Invites from './Invites';
 
 function Section({ id, title, intro, children }) {
   return (
@@ -94,6 +95,7 @@ export default function Settings({ sara, onReplay }) {
       </div>
 
       <Watchlist sara={sara} />
+      {sara.isOwner && sara.mode === 'live' && <Invites sara={sara} />}
     </>
   );
 }
