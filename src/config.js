@@ -11,7 +11,7 @@ export const config = {
 
   // AI: Gemini first, Groq as fallback. Change the model without touching code.
   geminiApiKey: env.GEMINI_API_KEY,
-  geminiModel: env.GEMINI_MODEL || 'gemini-2.5-flash',
+  geminiModel: env.GEMINI_MODEL || 'gemini-3.8-flash',
   groqApiKey: env.GROQ_API_KEY,
   groqModel: env.GROQ_MODEL || 'openai/gpt-oss-120b',
 

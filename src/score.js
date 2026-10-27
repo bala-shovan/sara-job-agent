@@ -60,9 +60,33 @@ Reply with JSON only, no prose, in exactly this shape:
 {"results":[{"id":0,"role_family":"${families ? families.replace(/, /g, '|') + '|other' : 'other'}","fit_score":0,"why_fit":"max 2 short sentences on why it fits this candidate","red_flags":"short text, or empty string","us_only":false}]}`;
 }
 
-async function callGemini(prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.geminiModel}:generateContent`;
-  const res = await fetch(url, {
+// Google retires Gemini models over time. If the configured model is gone
+// (HTTP 404), Sara asks the API which Flash models exist and switches to the
+// newest one for the rest of the run, so a retirement never breaks scoring.
+let geminiModel = null;
+
+export function pickFlashModel(models) {
+  const usable = models
+    .filter((m) => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map((m) => m.name.replace(/^models\//, ''))
+    .filter((id) => /^gemini-[\d.]+-flash(-lite)?$/.test(id)); // stable Flash ids only, no previews
+  const version = (id) => parseFloat(id.match(/gemini-([\d.]+)/)[1]);
+  // Newest version first; at equal version prefer Flash over Flash-Lite
+  usable.sort((a, b) => version(b) - version(a) || (a.includes('lite') ? 1 : 0) - (b.includes('lite') ? 1 : 0));
+  return usable[0] || null;
+}
+
+async function discoverGeminiModel() {
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', {
+    headers: { 'x-goog-api-key': config.geminiApiKey },
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!res.ok) throw new Error(`Gemini model list HTTP ${res.status}`);
+  return pickFlashModel((await res.json()).models || []);
+}
+
+async function geminiRequest(model, prompt) {
+  return fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     // Key goes in a header, not the URL, so it never shows up in logs
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.geminiApiKey },
@@ -70,9 +94,22 @@ async function callGemini(prompt) {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
     }),
-    signal: AbortSignal.timeout(60000),
+    signal: AbortSignal.timeout(90000),
   });
-  if (!res.ok) throw new Error(`Gemini HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+}
+
+async function callGemini(prompt) {
+  geminiModel ||= config.geminiModel;
+  let res = await geminiRequest(geminiModel, prompt);
+  if (res.status === 404) {
+    const replacement = await discoverGeminiModel();
+    if (replacement && replacement !== geminiModel) {
+      log(`Gemini model ${geminiModel} is retired; switching to ${replacement}. Set GEMINI_MODEL=${replacement} to skip this check.`);
+      geminiModel = replacement;
+      res = await geminiRequest(geminiModel, prompt);
+    }
+  }
+  if (!res.ok) throw new Error(`Gemini (${geminiModel}) HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
   const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';
   return JSON.parse(text);

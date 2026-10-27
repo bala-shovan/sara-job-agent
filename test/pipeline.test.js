@@ -69,3 +69,18 @@ test('AI output is clamped and validated', () => {
   assert.equal(s.fit_score, 100);
   assert.equal(s.role_family, 'pm');
 });
+
+test('picks the newest stable Gemini Flash model when one is retired', async () => {
+  const { pickFlashModel } = await import('../src/score.js');
+  const gen = ['generateContent'];
+  const models = [
+    { name: 'models/gemini-3.6-flash', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-flash', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-flash-lite', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.9-flash-preview-11-2026', supportedGenerationMethods: gen },
+    { name: 'models/gemini-3.8-pro', supportedGenerationMethods: gen },
+    { name: 'models/text-embedding-005', supportedGenerationMethods: ['embedContent'] },
+  ];
+  assert.equal(pickFlashModel(models), 'gemini-3.8-flash');
+  assert.equal(pickFlashModel([]), null);
+});
