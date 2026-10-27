@@ -1,0 +1,119 @@
+{
+  "_note": "Fictional sample jobs for testing Sara (npm run dry-run). Each one exercises a filter or ranking rule; the expected outcome is in 'expect'.",
+  "already_seen": [
+    { "source": "remotive", "external_id": "9001", "url": "https://example.com/jobs/seen-before", "title": "Product Manager, Payments", "company": "Ledgerly" }
+  ],
+  "jobs": [
+    {
+      "expect": "PICK: PM, worldwide, logistics + AI",
+      "source": "remoteok", "external_id": "1001", "url": "https://example.com/jobs/routewise-senior-pm-ai",
+      "title": "Senior Product Manager, AI Routing", "company": "RouteWise", "location": "Worldwide", "remote_scope": "Worldwide",
+      "is_remote": true, "salary_text": "$70,000–$95,000 per year", "salary_min": 70000, "salary_max": 95000, "salary_currency": "USD", "salary_period": "year",
+      "posted_days_ago": 2,
+      "description": "RouteWise builds last-mile delivery and route optimization SaaS for B2B fleets. You will own our AI dispatch roadmap, work with engineering on LLM-powered driver assignment, write PRDs, and talk to customers. 4+ years of product experience in B2B SaaS. Fully remote, we hire anywhere."
+    },
+    {
+      "expect": "DROP: remote but US only (location)",
+      "source": "remoteok", "external_id": "1002", "url": "https://example.com/jobs/shipfast-pm",
+      "title": "Product Manager", "company": "ShipFast", "location": "United States", "remote_scope": "United States",
+      "is_remote": true, "posted_days_ago": 3,
+      "description": "Remote product manager for our logistics platform."
+    },
+    {
+      "expect": "DROP: description says US work authorization",
+      "source": "remotive", "external_id": "1003", "url": "https://example.com/jobs/nimbus-ai-pm",
+      "title": "AI Product Manager", "company": "Nimbus AI", "location": "Remote", "remote_scope": "Remote",
+      "is_remote": true, "posted_days_ago": 1,
+      "description": "Lead our AI assistant product. Candidates must be authorized to work in the United States without sponsorship."
+    },
+    {
+      "expect": "DROP: director is out of range",
+      "source": "himalayas", "external_id": "1004", "url": "https://example.com/jobs/acme-director-product",
+      "title": "Director of Product Management", "company": "Acme Cloud", "location": "Worldwide", "remote_scope": "Worldwide",
+      "is_remote": true, "posted_days_ago": 4, "description": "Lead a team of 8 product managers."
+    },
+    {
+      "expect": "DROP: junior is out of range",
+      "source": "himalayas", "external_id": "1005", "url": "https://example.com/jobs/acme-junior-po",
+      "title": "Junior Product Owner", "company": "Acme Cloud", "location": "Worldwide", "remote_scope": "Worldwide",
+      "is_remote": true, "posted_days_ago": 4, "description": "Entry role supporting the product team."
+    },
+    {
+      "expect": "PICK: support engineer, APAC, API debugging",
+      "source": "ashby:helpdeskly", "external_id": "1006", "url": "https://example.com/jobs/helpdeskly-pse-apac",
+      "title": "Senior Product Support Engineer (APAC)", "company": "Helpdeskly", "location": "Remote - APAC", "remote_scope": "Remote (APAC)",
+      "is_remote": true, "posted_days_ago": 5,
+      "description": "Debug customer API integrations using Postman and logs, reproduce bugs, write escalations to engineering in Jira, and mentor junior support engineers. B2B SaaS experience required. APAC hours."
+    },
+    {
+      "expect": "DROP: remote but Europe only",
+      "source": "greenhouse:eurosoft", "external_id": "1007", "url": "https://example.com/jobs/eurosoft-tse",
+      "title": "Technical Support Engineer", "company": "EuroSoft", "location": "Germany", "remote_scope": "Germany",
+      "is_remote": true, "posted_days_ago": 2, "description": "Support German-speaking customers."
+    },
+    {
+      "expect": "PICK: support lead, Dhaka hybrid",
+      "source": "bdjobs", "external_id": "1008", "url": "https://example.com/jobs/bdsaas-support-lead",
+      "title": "Technical Support Team Lead", "company": "Bengal SaaS Ltd", "location": "Dhaka (Hybrid)", "remote_scope": "Dhaka hybrid",
+      "is_remote": false, "posted_days_ago": 6,
+      "description": "Lead a team of 8 support engineers for our B2B SaaS platform serving US clients. Own escalation processes, coach engineers, work with product on bug triage. 7+ years in technical support."
+    },
+    {
+      "expect": "DROP: pay below $2,000/month",
+      "source": "remotive", "external_id": "1009", "url": "https://example.com/jobs/lowpay-csm",
+      "title": "Customer Success Manager", "company": "TinyTools", "location": "Worldwide", "remote_scope": "Worldwide",
+      "is_remote": true, "salary_text": "$1,200 per month", "posted_days_ago": 2, "description": "Manage SMB accounts."
+    },
+    {
+      "expect": "CANDIDATE: CSM, anywhere, B2B SaaS",
+      "source": "remotive", "external_id": "1010", "url": "https://example.com/jobs/contentlane-csm",
+      "title": "Customer Success Manager", "company": "ContentLane", "location": "Anywhere", "remote_scope": "Anywhere",
+      "is_remote": true, "posted_days_ago": 3,
+      "description": "Own a book of mid-market B2B SaaS customers using our content marketing platform. Drive adoption, renewals and expansion. Technical aptitude a plus."
+    },
+    {
+      "expect": "DROP: not a target role",
+      "source": "remoteok", "external_id": "1011", "url": "https://example.com/jobs/routewise-swe",
+      "title": "Senior Software Engineer", "company": "RouteWise", "location": "Worldwide", "remote_scope": "Worldwide",
+      "is_remote": true, "posted_days_ago": 2, "description": "Build backend services."
+    },
+    {
+      "expect": "DROP: on-site outside Dhaka",
+      "source": "greenhouse:londonco", "external_id": "1012", "url": "https://example.com/jobs/londonco-pm",
+      "title": "Product Manager", "company": "LondonCo", "location": "London, UK", "remote_scope": "London, UK",
+      "is_remote": false, "posted_days_ago": 2, "description": "Office-based role in London."
+    },
+    {
+      "expect": "DROP: older than 30 days",
+      "source": "himalayas", "external_id": "1013", "url": "https://example.com/jobs/oldco-pm",
+      "title": "Product Manager", "company": "OldCo", "location": "Worldwide", "remote_scope": "Worldwide",
+      "is_remote": true, "posted_days_ago": 60, "description": "Posted long ago."
+    },
+    {
+      "expect": "PICK: PM, content platform, remote",
+      "source": "lever:storyhub", "external_id": "1014", "url": "https://example.com/jobs/storyhub-senior-pm",
+      "title": "Senior Product Manager, Content Platform", "company": "StoryHub", "location": "Remote", "remote_scope": "Remote",
+      "is_remote": true, "posted_days_ago": 1,
+      "description": "Own the roadmap for our headless content management platform used by marketing teams. Partner with engineering and design, run discovery, define success metrics. Experience with martech or content platforms strongly preferred. We hire globally."
+    },
+    {
+      "expect": "DEDUPE: same company + title as RouteWise on another board",
+      "source": "himalayas", "external_id": "1015", "url": "https://example.com/jobs/routewise-senior-pm-ai-copy",
+      "title": "Senior Product Manager, AI Routing", "company": "RouteWise", "location": "Worldwide", "remote_scope": "Worldwide",
+      "is_remote": true, "posted_days_ago": 2, "description": "Same role reposted."
+    },
+    {
+      "expect": "DEDUPE: already seen on an earlier run",
+      "source": "remotive", "external_id": "9001", "url": "https://example.com/jobs/seen-before",
+      "title": "Product Manager, Payments", "company": "Ledgerly", "location": "Worldwide", "remote_scope": "Worldwide",
+      "is_remote": true, "posted_days_ago": 8, "description": "Seen before."
+    },
+    {
+      "expect": "PICK: Product Owner, Dhaka, BDT pay above floor",
+      "source": "bdjobs", "external_id": "1017", "url": "https://example.com/jobs/dhakalogix-po",
+      "title": "Product Owner", "company": "DhakaLogix", "location": "Dhaka", "remote_scope": "Dhaka on-site",
+      "is_remote": false, "salary_text": "BDT 250,000 per month", "posted_days_ago": 3,
+      "description": "Own the backlog for our fleet management and delivery tracking SaaS. Run Scrum ceremonies, write user stories, work with 12 engineers. CSPO preferred."
+    }
+  ]
+}

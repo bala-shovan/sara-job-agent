@@ -1,0 +1,20 @@
+{
+  "name": "sara-job-agent",
+  "version": "0.1.0",
+  "description": "Sara: an AI agent that finds the 5 best-matching jobs every morning and tracks applications. Runs on free tiers.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dry-run": "SARA_MOCK=1 node src/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "nodemailer": "^6.9.14"
+  }
+}
