@@ -29,7 +29,7 @@ GitHub Actions (cron, 9:00 AM Dhaka)
 | AI | Google Gemini API (Groq as fallback) |
 | Database | Supabase (Postgres) |
 | Email | Gmail SMTP with an app password |
-| Dashboard | Next.js on Vercel (coming next) |
+| Dashboard | Next.js on Vercel (`dashboard/`) |
 
 ## Project layout
 
@@ -46,6 +46,24 @@ GitHub Actions (cron, 9:00 AM Dhaka)
 | `candidate-profile.md` | What Sara scores jobs against (edit freely) |
 | `supabase/schema.sql` | Database tables, search profile, watchlist, security rules |
 | `fixtures/sample-jobs.json` | Fictional jobs that exercise every rule |
+
+## Dashboard
+
+`dashboard/` is a Next.js app where I review Sara's picks and track every application:
+
+- **Today**: the morning's picks with fit score, why each fits, red flags, and one-click Mark applied, Not interested and good/bad ratings
+- **Pipeline**: every kept job on a route from New to Applied, Interview scheduled and Offer, with notes and a progress tracker per job
+- **Add a job**: track roles found elsewhere, such as LinkedIn
+- **Sara's brief**: edit target roles, priority bonuses, pay floor, regions and the company watchlist without touching code
+- **Activity**: each run's funnel, from jobs fetched to picks, plus any source errors
+
+Signed out, it shows a **demo with fictional sample jobs**, so the public link is safe for a portfolio. Signing in (email magic link) shows real data; Row Level Security limits it to the owner's email.
+
+```bash
+cd dashboard
+npm install
+npm run dev       # demo mode works with no keys; add .env.local (see .env.example) for real data
+```
 
 ## Run it
 
@@ -72,7 +90,7 @@ In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **A
 
 ## Roadmap
 
-1. **Find (MVP)**: daily picks by email ← *here*
-2. **Track**: dashboard to mark Applied, add jobs found elsewhere (e.g. LinkedIn), rate picks
+1. **Find (MVP)**: daily picks by email ✓
+2. **Track**: dashboard to mark Applied, add jobs found elsewhere (e.g. LinkedIn), rate picks ← *here*
 3. **Interviews**: read-only Gmail scan for employer replies, interview reminders
 4. **Portfolio**: public demo mode with sample data, walkthrough video, case study
