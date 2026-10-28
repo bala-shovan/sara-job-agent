@@ -16,7 +16,8 @@ export default function Today({ sara, goTo, next }) {
     .sort((a, b) => b.fit_score - a.fit_score);
   const allSaved = batch.length > 0 && shown.length === 0;
   const run = sara.runs[0];
-  const lastRunFoundNothing = run && shown.length > 0 && new Date(run.started_at).getTime() - newest > 3 * 3600000;
+  // Sara's latest run came well after her newest pick: it found nothing new
+  const lastRunFoundNothing = run && newest > 0 && new Date(run.started_at).getTime() - newest > 3 * 3600000;
 
   return (
     <section aria-labelledby="today-heading">
@@ -32,7 +33,17 @@ export default function Today({ sara, goTo, next }) {
         )}
       </div>
 
-      {allSaved ? (
+      {lastRunFoundNothing && shown.length === 0 ? (
+        <div className="empty">
+          <h2>No new matches this time</h2>
+          <p>
+            Sara checked {run.fetched.toLocaleString()} jobs at {timeOf(run.started_at)} and none were new jobs that fit you.
+            Everything that matched was already in her earlier picks{batch.length ? ', which are on your Saved tab' : ''}.
+            {next ? ` She looks again ${next}.` : ''}
+          </p>
+          {batch.length > 0 && <button className="btn btn-primary" onClick={() => goTo('saved')}>Open Saved</button>}
+        </div>
+      ) : allSaved ? (
         <div className="empty">
           <h2>You've saved every pick</h2>
           <p>They're on your Saved tab. {next ? `Sara brings a fresh set ${next}.` : 'Resume Sara in Settings for a fresh set.'}</p>
