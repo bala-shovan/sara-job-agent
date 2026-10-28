@@ -86,6 +86,20 @@ export function useSara() {
     return true;
   }, [data.jobs, mode, notify]);
 
+  // Live databases need supabase/004_saved_jobs.sql before jobs can be saved
+  const savedNeedsMigration = mode === 'live' && data.jobs.length > 0 && !('saved_at' in data.jobs[0]);
+
+  const toggleSaved = useCallback(async (job) => {
+    if (savedNeedsMigration) {
+      notify('Saving needs one database update: run supabase/004_saved_jobs.sql in Supabase.', 'error');
+      return false;
+    }
+    const saving = !job.saved_at;
+    const ok = await updateJob(job.id, { saved_at: saving ? new Date().toISOString() : null });
+    if (ok) notify(saving ? `Saved "${job.title}". Find it on the Saved tab.` : `Removed "${job.title}" from Saved.`);
+    return ok;
+  }, [savedNeedsMigration, updateJob, notify]);
+
   const addJob = useCallback(async (fields) => {
     const row = {
       source: 'manual', external_id: null, role_family: fields.role_family || null, is_pick: false,
@@ -199,6 +213,6 @@ export function useSara() {
   return {
     mode, session, email, isOwner, authReady, loaded, loading, canSignIn: Boolean(supabase),
     ...data, message, notify, reload: load,
-    updateJob, addJob, saveProfile, updateCompany, addCompany, addInvite, removeInvite, signIn, signOut,
+    updateJob, toggleSaved, savedNeedsMigration, addJob, saveProfile, updateCompany, addCompany, addInvite, removeInvite, signIn, signOut,
   };
 }

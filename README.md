@@ -50,6 +50,7 @@ GitHub Actions (wakes hourly)
 | `supabase/schema.sql` | Database tables, search profile, watchlist, security rules |
 | `supabase/002_hire_sara.sql` | Adds hiring, schedule, alert email and About you to the profile |
 | `supabase/003_multi_user.sql` | One Sara per person: user_id on every table, per-user security, invite list (max 5), sign-up gate |
+| `supabase/004_saved_jobs.sql` | Adds `saved_at` so picks can be saved for later |
 | `fixtures/sample-jobs.json` | Fictional jobs that exercise every rule |
 
 ## Dashboard
@@ -58,7 +59,8 @@ GitHub Actions (wakes hourly)
 
 - **Hire Sara**: a four-step setup (About you, Jobs you want, Alerts, Hire) that switches her on
 
-- **Today**: the morning's picks with fit score, why each fits, red flags, and one-click Mark applied, Not interested and good/bad ratings
+- **Today**: the morning's picks with fit score, why each fits, red flags, and one-click Save, Mark applied, Not interested and good/bad ratings
+- **Saved**: jobs kept for later; saving a pick takes it off Today, so each morning's list shows only what's new
 - **Pipeline**: every kept job on a route from New to Applied, Interview scheduled and Offer, with notes and a progress tracker per job
 - **Add a job**: track roles found elsewhere, such as LinkedIn
 - **Settings**: pause or resume Sara, and edit everything from setup (roles and their priority, levels, regions, pay floor, schedule, alert email) plus the company watchlist, without touching code
@@ -85,7 +87,7 @@ In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **A
 
 ## Setup
 
-1. Run `supabase/schema.sql` and `002_hire_sara.sql` in the Supabase SQL Editor, sign in to the dashboard once as the owner, then run `003_multi_user.sql`.
+1. Run `supabase/schema.sql` and `002_hire_sara.sql` in the Supabase SQL Editor, sign in to the dashboard once as the owner, then run `003_multi_user.sql` and `004_saved_jobs.sql`.
 2. Add repository secrets (Settings → Secrets and variables → Actions): `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GEMINI_API_KEY`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and optionally `GROQ_API_KEY`.
 3. Deploy `dashboard/` to Vercel, sign in and hire Sara. To run her right away, use **Actions → Sara daily run → Run workflow**.
 

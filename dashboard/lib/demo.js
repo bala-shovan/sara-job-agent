@@ -13,7 +13,7 @@ const todayRun = (() => {
 let id = 100;
 const job = (j) => ({
   id: id++, source: 'remoteok', location: 'Worldwide', remote_scope: 'Worldwide', salary_text: null,
-  status: 'New', rating: null, notes: null, is_pick: false, red_flags: '', applied_at: null, interview_at: null, ...j,
+  status: 'New', rating: null, notes: null, is_pick: false, red_flags: '', applied_at: null, interview_at: null, saved_at: null, ...j,
 });
 
 export const demoJobs = [
@@ -58,7 +58,7 @@ export const demoJobs = [
     status: 'Rejected', applied_at: ago(6), url: 'https://example.com/gigwise',
     why_fit: 'Two-sided marketplace for field technicians.' }),
   job({ title: 'Product Owner, Payments', company: 'Ledgerly', role_family: 'pm', fit_score: 72, final_score: 87, is_pick: true, found_at: ago(1),
-    rating: 'good', url: 'https://example.com/ledgerly', why_fit: 'B2B SaaS payments product with a Scrum team in APAC.' }),
+    rating: 'good', saved_at: ago(1), url: 'https://example.com/ledgerly', why_fit: 'B2B SaaS payments product with a Scrum team in APAC.' }),
   job({ title: 'Product Manager', company: 'Remote Hiring Co', role_family: 'pm', source: 'manual', found_at: ago(4),
     status: 'Applied', applied_at: ago(4), url: 'https://example.com/manual-linkedin', why_fit: null, notes: 'Found on LinkedIn.' }),
 ];

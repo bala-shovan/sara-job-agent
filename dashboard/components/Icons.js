@@ -6,3 +6,4 @@ export const Cross = () => (<svg {...base}><path d="M6 6l12 12M18 6L6 18" /></sv
 export const ThumbUp = () => (<svg {...base}><path d="M7 10v10H4V10h3z" /><path d="M7 10l4-7a2 2 0 0 1 2 2v4h5.5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.3 20H7" /></svg>);
 export const ThumbDown = () => (<svg {...base}><path d="M7 14V4H4v10h3z" /><path d="M7 14l4 7a2 2 0 0 0 2-2v-4h5.5a2 2 0 0 0 2-2.3l-1.2-7A2 2 0 0 0 17.3 4H7" /></svg>);
 export const Flag = () => (<svg {...base} style={{ width: 14, height: 14, flex: 'none', transform: 'translateY(2px)' }}><path d="M5 21V4" /><path d="M5 4h11l-2 4 2 4H5" /></svg>);
+export const Bookmark = ({ filled }) => (<svg {...base} fill={filled ? 'currentColor' : 'none'}><path d="M6 4h12v17l-6-4-6 4V4z" /></svg>);

@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Cross, External, ThumbDown, ThumbUp } from './Icons';
+import { Bookmark, Check, Cross, External, ThumbDown, ThumbUp } from './Icons';
 import { shortDate } from '../lib/format';
 
 // The buttons shared by Today's picks and the pipeline detail.
@@ -12,6 +12,14 @@ export default function JobActions({ job, sara }) {
       <a className="btn" href={job.url} target="_blank" rel="noopener noreferrer">
         <External /> Open job posting
       </a>
+
+      <button
+        className="btn" aria-pressed={Boolean(job.saved_at)}
+        title={job.saved_at ? 'Remove from Saved' : 'Keep for later and clear it from Today'}
+        onClick={() => sara.toggleSaved(job)}
+      >
+        <Bookmark filled={Boolean(job.saved_at)} /> {job.saved_at ? 'Saved' : 'Save'}
+      </button>
 
       {job.status === 'New' && (
         <>

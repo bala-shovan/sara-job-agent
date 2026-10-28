@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSara } from '../lib/useSara';
 import Today from '../components/Today';
 import Pipeline from '../components/Pipeline';
+import Saved from '../components/Saved';
 import AddJob from '../components/AddJob';
 import Settings from '../components/Settings';
 import Hire from '../components/Hire';
@@ -14,6 +15,7 @@ import { nextRunLabel } from '../lib/setup';
 
 const TABS = [
   ['today', 'Today'],
+  ['saved', 'Saved'],
   ['pipeline', 'Pipeline'],
   ['add', 'Add a job'],
   ['settings', 'Settings'],
@@ -61,6 +63,7 @@ export default function Page() {
   const mustHire = live && sara.loaded && !needsMigration && (!p || !p.hired_at);
   const showHire = mustHire || (tab === 'hire' && (demo || live));
   const next = p ? nextRunLabel(p, sara.runs) : null;
+  const savedCount = sara.jobs.filter((j) => j.saved_at).length;
   const active = sara.jobs.filter((j) => j.status === 'Applied' || j.status === 'Interview scheduled').length;
 
   const leaveDemo = () => { setDemo(false); setTab('today'); history.replaceState(null, '', '#'); window.scrollTo({ top: 0 }); };
@@ -101,6 +104,7 @@ export default function Page() {
           {TABS.map(([k, label]) => (
             <button key={k} role="tab" className="tab" aria-selected={tab === k} onClick={() => goTo(k)}>
               {label}
+              {k === 'saved' && savedCount > 0 && <span className="tab-count">{savedCount}</span>}
               {k === 'pipeline' && active > 0 && <span className="tab-count">{active} active</span>}
             </button>
           ))}
@@ -122,6 +126,7 @@ export default function Page() {
             <Hire key={p?.id || 'new'} sara={sara} onDone={() => goTo('today')} onCancel={mustHire ? null : () => goTo('settings')} />
           ) : (live && !sara.loaded) ? null : <>
             {tab === 'today' && <Today sara={sara} goTo={goTo} next={next} />}
+            {tab === 'saved' && <Saved sara={sara} goTo={goTo} />}
             {tab === 'pipeline' && <Pipeline sara={sara} />}
             {tab === 'add' && <AddJob sara={sara} goTo={goTo} />}
             {tab === 'settings' && p && !needsMigration && <Settings sara={sara} onReplay={() => goTo('hire')} />}

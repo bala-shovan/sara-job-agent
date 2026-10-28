@@ -359,3 +359,7 @@ code { font-size: 0.9em; padding: 1px 5px; border-radius: 4px; background: var(-
 @media (max-width: 640px) {
   .who { display: none; }
 }
+
+/* Saved */
+.linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--go); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.saved-when { margin: 6px 0 0; font-size: var(--step--1); color: var(--muted); }
