@@ -28,7 +28,7 @@ export function shortDate(iso) {
 
 export function timeOf(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
+  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: TZ });
 }
 
 export function greeting() {

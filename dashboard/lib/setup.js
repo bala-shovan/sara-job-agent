@@ -150,6 +150,7 @@ function localParts(date, timeZone) {
     timeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23', weekday: 'short',
   }).formatToParts(date).map((x) => [x.type, x.value]));
   return {
+    year: Number(parts.year), month: Number(parts.month), day: Number(parts.day),
     hour: Number(parts.hour),
     isoWeekday: { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 }[parts.weekday],
     dateKey: `${parts.year}-${parts.month}-${parts.day}`,
@@ -172,25 +173,33 @@ export function daysLabel(days = []) {
 
 const WEEKDAY_NAMES = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-// "today at 9:00 AM", "within the hour", "tomorrow at 9:00 AM", "Monday at 9:00 AM"
+// "today, Wednesday 28 October, at 9:00 AM", "tomorrow, Thursday 29 October, at 9:00 AM",
+// "Monday 2 November at 9:00 AM". Always names the date.
 export function nextRunLabel(p, runs = [], now = new Date()) {
   if (!p?.hired_at) return null;
   if (!p.active) return null;
   const tz = p.timezone || 'Asia/Dhaka';
   const days = p.run_days?.length ? p.run_days : [1, 2, 3, 4, 5, 6, 7];
+  const hour = Number.isInteger(p.run_hour) ? p.run_hour : 9;
   const local = localParts(now, tz);
-  const ranToday = runs.some((r) => (r.status === 'success' || r.status === 'partial')
-    && localParts(new Date(r.started_at), tz).dateKey === local.dateKey);
+  // Today's check counts as done only if a run happened at or after the run hour
+  const ranToday = runs.some((r) => {
+    if (r.status !== 'success' && r.status !== 'partial') return false;
+    const at = localParts(new Date(r.started_at), tz);
+    return at.dateKey === local.dateKey && at.hour >= hour;
+  });
+  const dateOf = (d) => new Date(Date.UTC(local.year, local.month - 1, local.day + d))
+    .toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
 
   for (let d = 0; d < 8; d++) {
     const weekday = ((local.isoWeekday - 1 + d) % 7) + 1;
     if (!days.includes(weekday)) continue;
     if (d === 0) {
       if (ranToday) continue;
-      if (local.hour >= p.run_hour) return 'within the hour';
-      return `today at ${hourLabel(p.run_hour)}`;
+      if (local.hour >= hour) return `today, ${dateOf(0)}, within the hour`;
+      return `today, ${dateOf(0)}, at ${hourLabel(hour)}`;
     }
-    return `${d === 1 ? 'tomorrow' : WEEKDAY_NAMES[weekday]} at ${hourLabel(p.run_hour)}`;
+    return `${d === 1 ? 'tomorrow, ' : ''}${dateOf(d)}${d === 1 ? ',' : ''} at ${hourLabel(hour)}`;
   }
   return null;
 }
