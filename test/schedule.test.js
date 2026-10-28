@@ -52,3 +52,11 @@ test('other time zones', () => {
   assert.equal(isDue(ny, [], new Date(Date.UTC(2026, 9, 28, 13, 17))).due, true);
   assert.equal(isDue(ny, [], new Date(Date.UTC(2026, 9, 28, 12, 17))).due, false);
 });
+
+test('a run earlier that day, before the chosen hour, does not cancel the scheduled one', () => {
+  // Manual test run at 00:39 Dhaka, then the 9 AM wake-up
+  const early = { status: 'partial', started_at: '2026-10-27T18:39:13Z' };
+  assert.equal(isDue(hired, [early], at(9)).due, true);
+  const onTime = { status: 'success', started_at: at(9).toISOString() };
+  assert.equal(isDue(hired, [early, onTime], at(10)).due, false);
+});

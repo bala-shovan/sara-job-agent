@@ -42,9 +42,15 @@ export function isDue(profile, runsToday, now = new Date()) {
   // ">=" means a late or skipped GitHub run still catches up later that day
   if (local.hour < hour) return { due: false, reason: `before ${hour}:00 ${tz}` };
 
-  const done = runsToday.filter((r) => r.status === 'success' || r.status === 'partial');
+  // Only runs at or after today's run time count. An earlier run the same
+  // day (say a manual test just after midnight) must not cancel the
+  // scheduled one.
+  const slotStart = localDayStartUtc(now, tz).getTime() + hour * 3600000;
+  const inSlot = runsToday.filter((r) => !r.started_at || new Date(r.started_at).getTime() >= slotStart);
+
+  const done = inSlot.filter((r) => r.status === 'success' || r.status === 'partial');
   if (done.length) return { due: false, reason: 'already ran today' };
-  const attempts = runsToday.filter((r) => r.status === 'failed' || r.status === 'running').length;
+  const attempts = inSlot.filter((r) => r.status === 'failed' || r.status === 'running').length;
   if (attempts >= MAX_ATTEMPTS_PER_DAY) return { due: false, reason: `gave up after ${attempts} failed attempts today` };
 
   return { due: true, reason: `due: ${local.dateKey} ${String(local.hour).padStart(2, '0')}:${String(local.minute).padStart(2, '0')} ${tz}` };
