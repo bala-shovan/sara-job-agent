@@ -372,3 +372,8 @@ code { font-size: 0.9em; padding: 1px 5px; border-radius: 4px; background: var(-
 .pick-group-none { margin: 12px 0 0; padding: 20px 22px; background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius-m); color: var(--muted); }
 .score span { letter-spacing: -0.02em; }
 .score .pct { font-size: 0.5em; font-weight: 600; }
+.pick-list-row { margin-top: 14px; }
+.pick-list-name { margin: 0 0 6px; font-weight: 600; }
+.pick-list-name span { font-weight: 400; color: var(--muted); }
+.field-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 560px) { .field-row.three { grid-template-columns: 1fr; } }

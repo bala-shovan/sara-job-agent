@@ -11,7 +11,7 @@
   ],
   "jobs": [
     {
-      "expect": "PICK: PM, worldwide, logistics + AI",
+      "expect": "DROP: senior product title (Product is entry to mid level now)",
       "source": "remoteok",
       "external_id": "1001",
       "url": "https://example.com/jobs/routewise-senior-pm-ai",
@@ -189,7 +189,7 @@
       "description": "Posted long ago."
     },
     {
-      "expect": "PICK: PM, content platform, remote",
+      "expect": "DROP: senior product title (Product is entry to mid level now)",
       "source": "lever:storyhub",
       "external_id": "1014",
       "url": "https://example.com/jobs/storyhub-senior-pm",
@@ -250,12 +250,13 @@
       "is_remote": true,
       "salary_text": null,
       "posted_days_ago": 1,
-      "expect": "DROP: Product role asks under 2 years",
+      "expect": "PICK: Product role asking 1+ years (entry to mid level)",
       "external_id": "2001",
       "url": "https://example.com/jobs/growthly-pm",
       "title": "Product Manager, Growth",
       "company": "Growthly",
-      "description": "Join our growth team as a product manager for our B2B SaaS. 1+ years of product management experience. Remote, worldwide."
+      "description": "Join our growth team as a product manager for our B2B SaaS. 1+ years of product management experience. Remote, worldwide.",
+      "mock_fit_score": 80
     },
     {
       "source": "remotive",
@@ -264,12 +265,13 @@
       "is_remote": true,
       "salary_text": null,
       "posted_days_ago": 1,
-      "expect": "DROP: support role is not senior (asks 3 years)",
+      "expect": "PICK: support role asking 3+ years (mid level)",
       "external_id": "2002",
       "url": "https://example.com/jobs/apidesk-tse",
       "title": "Technical Support Engineer",
       "company": "APIDesk",
-      "description": "Help customers debug API integrations. 3+ years of experience in technical support for SaaS products."
+      "description": "Help customers debug API integrations. 3+ years of experience in technical support for SaaS products.",
+      "mock_fit_score": 78
     },
     {
       "source": "remotive",
@@ -300,6 +302,51 @@
       "company": "Metricly",
       "mock_fit_score": 72,
       "description": "Own the analytics dashboards roadmap for our SaaS. 3+ years of product management experience."
+    },
+    {
+      "source": "weworkremotely",
+      "location": "Anywhere in the World",
+      "remote_scope": "Anywhere in the World",
+      "is_remote": true,
+      "salary_text": null,
+      "posted_days_ago": 1,
+      "expect": "DROP: Product role asks over 4 years",
+      "external_id": "3001",
+      "url": "https://example.com/jobs/scaleup-pm",
+      "title": "Product Manager, Platform",
+      "company": "ScaleUp",
+      "mock_fit_score": 90,
+      "description": "Own our platform roadmap. 6+ years of product management experience in B2B SaaS."
+    },
+    {
+      "source": "weworkremotely",
+      "location": "Anywhere in the World",
+      "remote_scope": "Anywhere in the World",
+      "is_remote": true,
+      "salary_text": null,
+      "posted_days_ago": 1,
+      "expect": "DROP: support role asks under 3 years",
+      "external_id": "3002",
+      "url": "https://example.com/jobs/helply-se",
+      "title": "Support Engineer",
+      "company": "Helply",
+      "mock_fit_score": 88,
+      "description": "Answer customer tickets about our API. 1-2 years of experience in a support role."
+    },
+    {
+      "source": "weworkremotely",
+      "location": "Anywhere in the World",
+      "remote_scope": "Anywhere in the World",
+      "is_remote": true,
+      "salary_text": null,
+      "posted_days_ago": 1,
+      "expect": "DROP: Tier 1 support is below mid level",
+      "external_id": "3003",
+      "url": "https://example.com/jobs/ticketco-t1",
+      "title": "Technical Support Engineer, Tier 1",
+      "company": "TicketCo",
+      "mock_fit_score": 85,
+      "description": "First-line technical support for our SaaS customers."
     }
   ]
 }

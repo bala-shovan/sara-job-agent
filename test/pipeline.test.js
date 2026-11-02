@@ -58,6 +58,14 @@ test('reads the years of experience a posting asks for', async () => {
   assert.equal(requiredYears('Founded 10 years ago, we are growing'), null);
 });
 
+test('RSS job feeds are read without extra libraries', async () => {
+  const { parseRss } = await import('../src/util.js');
+  const [item] = parseRss('<rss><channel><item><title><![CDATA[Acme: Senior Support Engineer]]></title><region>Anywhere in the World</region><link>https://example.com/1</link></item></channel></rss>');
+  assert.equal(item.title, 'Acme: Senior Support Engineer');
+  assert.equal(item.region, 'Anywhere in the World');
+  assert.equal(item.link, 'https://example.com/1');
+});
+
 test('a busy list cannot use the whole AI budget', async () => {
   const { capForScoring } = await import('../src/filter.js');
   const jobs = Array.from({ length: 30 }, (_, i) => ({ url: `p${i}`, role_family: 'pm' }))

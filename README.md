@@ -9,13 +9,14 @@ Built by Anik Shovan (Bala) as a portfolio project: from PRD to architecture to 
 ```
 GitHub Actions (wakes hourly)
   → whose Sara is due? (each person's own days, hour and time zone; on duty; not run yet today)
-  → fetch jobs ONCE for everyone: Remote OK, Remotive, Himalayas + everyone's watchlists (Greenhouse, Ashby, Lever)
+  → fetch jobs ONCE for everyone: Remote OK, Remotive, Himalayas, Jobicy, We Work Remotely, Working Nomads,
+    Real Work From Anywhere, Jobspresso + everyone's watchlists (Greenhouse, Ashby, Lever)
   → normalize into one schema
   then, for each person due, with their own settings:
   → dedupe against every job seen before (URL, source id, company + title)
   → filter in code: role keywords, seniority, years of experience asked, location, US-only, pay floor, age
   → score with AI (Gemini, Groq fallback): 0–100 fit + "why it fits" + red flags
-  → pick lists: 5 Product (roles asking 2+ years) + 5 Technical Support (senior, asking 7+ years),
+  → pick lists: 5 Product (entry to mid level, asking 1-4 years) + 5 Technical Support (mid to senior, asking 3+ years),
     each job a 75%+ match; fewer picks rather than weak ones
   → save to Supabase, log the run, email the picks
 ```
@@ -40,7 +41,7 @@ GitHub Actions (wakes hourly)
 | --- | --- |
 | `src/due.js`, `src/schedule.js` | The hourly "is Sara due?" check against the dashboard schedule |
 | `src/index.js` | A run, start to finish |
-| `src/sources/boards.js` | Remote OK, Remotive, Himalayas (BDJobs stub) |
+| `src/sources/boards.js` | Remote OK, Remotive, Himalayas, Jobicy, We Work Remotely, Working Nomads, Real Work From Anywhere, Jobspresso (BDJobs stub; Upwork has no public feed) |
 | `src/sources/ats.js` | Watchlist companies on Greenhouse, Ashby, Lever, with auto-detection |
 | `src/filter.js` | Code filters and pay parsing |
 | `src/score.js` | AI scoring prompt, providers, validation, fallback |
@@ -52,6 +53,7 @@ GitHub Actions (wakes hourly)
 | `supabase/002_hire_sara.sql` | Adds hiring, schedule, alert email and About you to the profile |
 | `supabase/003_multi_user.sql` | One Sara per person: user_id on every table, per-user security, invite list (max 5), sign-up gate |
 | `supabase/004_saved_jobs.sql` | Adds `saved_at` so picks can be saved for later |
+| `supabase/006_experience_levels.sql` | Revised experience levels for Bala's pick lists (data only) |
 | `supabase/005_pick_lists.sql` | Pick lists (e.g. 5 Product + 5 Technical Support) with experience rules, and a minimum match |
 | `src/groups.js` | Pick lists and the minimum match |
 | `fixtures/sample-jobs.json` | Fictional jobs that exercise every rule |
@@ -81,7 +83,7 @@ npm run dev       # demo mode works with no keys; add .env.local (see .env.examp
 
 ```bash
 npm install
-npm test          # 39 checks on sample jobs and the schedule, no network or keys needed
+npm test          # 43 checks on sample jobs and the schedule, no network or keys needed
 npm run dry-run   # full run on sample jobs; writes out/email-preview.html
 npm start         # real run (needs the environment variables in .env.example)
 ```

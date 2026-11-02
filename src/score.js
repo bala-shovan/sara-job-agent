@@ -41,8 +41,11 @@ export function buildPrompt(profileText, jobs, profile) {
   const cities = list(profile?.locations?.onsite_cities);
   const usOnly = profile?.exclusions?.drop_us_only_remote !== false;
   const targets = pickGroups(profile)
-    .filter((g) => g.min_years)
-    .map((g) => `- ${g.label} roles (${g.families.join(', ')}): ${g.senior_only ? 'senior level, ' : ''}postings that ask for ${g.min_years}+ years of experience.`)
+    .filter((g) => g.min_years || g.max_years || g.level)
+    .map((g) => {
+      const years = g.min_years && g.max_years ? `${g.min_years}-${g.max_years} years` : g.min_years ? `${g.min_years}+ years` : g.max_years ? `up to ${g.max_years} years` : null;
+      return `- ${g.label} roles (${g.families.join(', ')}): ${[g.level || (g.senior_only ? 'senior level' : null), years ? `postings asking for ${years} of experience` : null].filter(Boolean).join(', ')}.`;
+    })
     .join('\n');
 
   return `You are Sara, a careful job-matching assistant. Score how well each job fits this candidate.

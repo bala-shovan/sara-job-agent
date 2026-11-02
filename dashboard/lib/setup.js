@@ -130,7 +130,12 @@ export function patchFromDraft(d, p) {
     timezone: d.timezone,
     ...(() => {
       const clamp = (v, lo, hi, dflt) => { const n = Number(v); return Number.isFinite(n) && v !== '' ? Math.max(lo, Math.min(hi, Math.round(n))) : dflt; };
-      const groups = d.pick_groups?.map((g) => ({ ...g, picks: clamp(g.picks, 0, 10, 5), min_years: clamp(g.min_years, 0, 20, 0) })) || null;
+      const groups = d.pick_groups?.map((g) => ({
+        ...g,
+        picks: clamp(g.picks, 0, 10, 5),
+        min_years: clamp(g.min_years, 0, 20, 0),
+        max_years: g.max_years === null || g.max_years === undefined || g.max_years === '' ? null : clamp(g.max_years, 0, 30, null),
+      })) || null;
       return {
         pick_groups: groups,
         picks_per_day: groups ? Math.max(1, groups.reduce((n, g) => n + g.picks, 0)) : clamp(d.picks_per_day, 1, 10, 5),

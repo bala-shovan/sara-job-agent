@@ -88,14 +88,13 @@ export function filterJobs(jobs, profile, { maxAgeDays = 30 } = {}) {
 
     if (hasAnyWord(job.title, profile.exclusions.drop_title_words)) { drop('seniority out of range'); continue; }
 
-    // Experience rule for this list, e.g. Product: asks 2+ years;
-    // Technical Support: senior level, asks 7+ years
+    // Experience and level rules for this list, e.g. Product: entry to mid
+    // level, asking 1-4 years; Technical Support: mid to senior, asking 3+ years
+    if (group.drop_title_words?.length && hasAnyWord(job.title, group.drop_title_words)) { drop(`${group.label}: level out of range`); continue; }
     const years = requiredYears(job.description);
-    if (group.min_years) {
-      if (years !== null && years < group.min_years) { drop(`${group.label}: asks under ${group.min_years} years`); continue; }
-      if (years === null && group.senior_only && !SENIOR_TITLE.test(job.title)) { drop(`${group.label}: not senior level`); continue; }
-      if (group.min_years >= 2 && /\b(associate|apm)\b/i.test(job.title)) { drop(`${group.label}: associate level`); continue; }
-    }
+    if (years !== null && group.min_years && years < group.min_years) { drop(`${group.label}: asks under ${group.min_years} years`); continue; }
+    if (years !== null && group.max_years && years > group.max_years) { drop(`${group.label}: asks over ${group.max_years} years`); continue; }
+    if (years === null && group.senior_only && !SENIOR_TITLE.test(job.title)) { drop(`${group.label}: not senior level`); continue; }
 
     if (job.posted_at && new Date(job.posted_at).getTime() < cutoff) { drop('older than 30 days'); continue; }
 

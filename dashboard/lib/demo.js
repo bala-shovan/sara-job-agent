@@ -100,8 +100,10 @@ export const demoProfile = {
   min_final_score: 60,
   min_fit_score: 75,
   pick_groups: [
-    { key: 'product', label: 'Product', families: ['pm'], picks: 5, min_years: 2, senior_only: false },
-    { key: 'support', label: 'Technical Support', families: ['support_engineer', 'support_lead'], picks: 5, min_years: 7, senior_only: true },
+    { key: 'product', label: 'Product', level: 'entry to mid level', families: ['pm'], picks: 5, min_years: 1, max_years: 4,
+      drop_title_words: ['senior', 'sr', 'principal', 'staff', 'lead', 'group', 'head', 'director', 'vp'] },
+    { key: 'support', label: 'Technical Support', level: 'mid to senior level', families: ['support_engineer', 'support_lead'], picks: 5, min_years: 3, max_years: null,
+      drop_title_words: ['tier 1', 'tier i', 'level 1', 'l1', 'associate', 'trainee', 'junior', 'entry level', 'intern'] },
   ],
   run_time: '09:00 Asia/Dhaka',
   candidate_profile: `Product Owner at a last-mile delivery and fleet management SaaS. Shipped bulk route optimization (helped win $45K and $250K ARR customers), an AI support chat, driver auto-assignment and integrations with Uber, DoorDash and Twilio Flex. Certified Scrum Product Owner.

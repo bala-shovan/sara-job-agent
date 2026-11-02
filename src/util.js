@@ -46,6 +46,29 @@ export async function fetchJson(url, { timeoutMs = 20000, headers = {}, ...opts 
   return res.json();
 }
 
+// Fetch a text body (RSS/XML) with the same timeout and User-Agent.
+export async function fetchText(url, { timeoutMs = 20000 } = {}) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'sara-job-agent (personal job search bot)', Accept: 'application/rss+xml, application/xml, text/xml, */*' },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return res.text();
+}
+
+// Minimal RSS reader: returns each <item> as { tag: text }. Enough for job
+// feeds; no dependency needed.
+export function parseRss(xml = '') {
+  const unwrap = (v = '') => v.replace(/^\s*<!\[CDATA\[/, '').replace(/\]\]>\s*$/, '').trim();
+  return [...String(xml).matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi)].map(([, body]) => {
+    const item = {};
+    for (const [, tag, value] of body.matchAll(/<([a-zA-Z][\w:.-]*)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+      if (!(tag in item)) item[tag] = unwrap(value);
+    }
+    return item;
+  });
+}
+
 // Run async work over a list with limited concurrency (be polite to job sites).
 export async function mapLimit(items, limit, fn) {
   const results = new Array(items.length);

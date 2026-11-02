@@ -175,19 +175,25 @@ export function Alerts({ draft, set }) {
       {draft.pick_groups ? (
         <fieldset className="field">
           <legend>Daily picks</legend>
-          <p className="hint">Each list gets its own picks and experience rule.</p>
+          <p className="hint">Each list gets its own picks and the years of experience a job may ask for. Jobs outside that range are skipped.</p>
           {draft.pick_groups.map((g, i) => {
             const setGroup = (patch) => set({ pick_groups: draft.pick_groups.map((x, j) => (j === i ? { ...x, ...patch } : x)) });
             return (
-              <div className="field-row" key={g.key}>
-                <div className="field">
-                  <label htmlFor={`picks-${g.key}`}>{g.label}: picks per run</label>
-                  <input id={`picks-${g.key}`} type="number" min="0" max="10" value={g.picks} onChange={(e) => setGroup({ picks: e.target.value })} />
-                </div>
-                <div className="field">
-                  <label htmlFor={`years-${g.key}`}>{g.label}: years the job asks for</label>
-                  <input id={`years-${g.key}`} type="number" min="0" max="20" value={g.min_years} onChange={(e) => setGroup({ min_years: e.target.value })} />
-                  <p className="hint">{g.senior_only ? 'Senior-level roles only. ' : ''}Jobs asking for fewer years are skipped.</p>
+              <div key={g.key} className="pick-list-row">
+                <p className="pick-list-name">{g.label}{g.level ? <span> · {g.level}</span> : null}</p>
+                <div className="field-row three">
+                  <div className="field">
+                    <label htmlFor={`picks-${g.key}`}>Picks per run</label>
+                    <input id={`picks-${g.key}`} type="number" min="0" max="10" value={g.picks} onChange={(e) => setGroup({ picks: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`years-${g.key}`}>Asks at least (years)</label>
+                    <input id={`years-${g.key}`} type="number" min="0" max="20" value={g.min_years ?? ''} onChange={(e) => setGroup({ min_years: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`max-${g.key}`}>Asks at most (years)</label>
+                    <input id={`max-${g.key}`} type="number" min="0" max="30" placeholder="No limit" value={g.max_years ?? ''} onChange={(e) => setGroup({ max_years: e.target.value })} />
+                  </div>
                 </div>
               </div>
             );
