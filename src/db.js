@@ -6,6 +6,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { config, defaultProfile } from './config.js';
 import { normKey } from './util.js';
+import { KEYWORD_SCORE_NOTE } from './score.js';
 
 const JOB_COLUMNS = ['source', 'external_id', 'url', 'title', 'company', 'location', 'remote_scope',
   'salary_text', 'posted_at', 'description', 'role_family', 'fit_score', 'final_score',
@@ -54,24 +55,29 @@ class SupabaseStore {
   async findExisting(userId, jobs) {
     const urls = new Set();
     const ids = new Set();
+    const titles = new Set();
+    // A job only the keyword fallback scored (AI was down), never picked or
+    // touched, doesn't count as seen: it gets a real AI score next time.
+    const counts = (r) => !(String(r.why_fit || '').startsWith(KEYWORD_SCORE_NOTE) && !r.is_pick && r.status === 'New' && !r.saved_at);
+    const cols = 'url, source, external_id, company, title, why_fit, is_pick, status, saved_at';
     for (const part of chunk(jobs.map((j) => j.url), 100)) {
-      const data = await this.check(this.db.from('jobs').select('url').eq('user_id', userId).in('url', part), 'Checking existing jobs');
-      data.forEach((r) => urls.add(r.url));
+      const data = await this.check(this.db.from('jobs').select(cols).eq('user_id', userId).in('url', part), 'Checking existing jobs');
+      data.filter(counts).forEach((r) => urls.add(r.url));
     }
     for (const part of chunk(jobs.map((j) => j.external_id).filter(Boolean), 100)) {
-      const data = await this.check(this.db.from('jobs').select('source, external_id').eq('user_id', userId).in('external_id', part), 'Checking existing jobs');
-      data.forEach((r) => ids.add(`${r.source}|${r.external_id}`));
+      const data = await this.check(this.db.from('jobs').select(cols).eq('user_id', userId).in('external_id', part), 'Checking existing jobs');
+      data.filter(counts).forEach((r) => ids.add(`${r.source}|${r.external_id}`));
     }
     const since = new Date(Date.now() - 120 * 86400000).toISOString();
-    const data = await this.check(this.db.from('jobs').select('company, title').eq('user_id', userId).gte('found_at', since), 'Checking existing jobs');
-    const titles = new Set(data.map((r) => `${normKey(r.company)}|${normKey(r.title)}`));
+    const data = await this.check(this.db.from('jobs').select(cols).eq('user_id', userId).gte('found_at', since), 'Checking existing jobs');
+    data.filter(counts).forEach((r) => titles.add(`${normKey(r.company)}|${normKey(r.title)}`));
     return { urls, ids, titles };
   }
 
   async saveJobs(userId, jobs) {
     const rows = jobs.map((j) => ({ ...pick(j, JOB_COLUMNS), user_id: userId }));
     for (const part of chunk(rows, 50)) {
-      await this.check(this.db.from('jobs').upsert(part, { onConflict: 'user_id,url', ignoreDuplicates: true }), 'Saving jobs');
+      await this.check(this.db.from('jobs').upsert(part, { onConflict: 'user_id,url' }), 'Saving jobs');
     }
   }
 

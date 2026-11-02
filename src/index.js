@@ -136,8 +136,10 @@ async function runForUser(store, profile, shared) {
     const { ranked, picks } = rankAndPick(scored, profile);
     stats.picked = picks.length;
 
-    // Save every scored job (so it's never re-scored) with picks flagged
-    await store.saveJobs(userId, ranked);
+    // Save every AI-scored job (so it's never re-scored) with picks flagged.
+    // Jobs only the keyword fallback scored are left unsaved, so the AI
+    // judges them properly on the next run.
+    await store.saveJobs(userId, ranked.filter((j) => j.scored_by !== 'heuristic' || j.is_pick));
 
     const mail = await sendEmail(picks, { ...stats, errorCount: errors.length }, profile);
     log(mail.sent ? `${name}: email sent, "${mail.subject}"` : `${name}: email preview written to ${mail.preview}`);

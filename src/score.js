@@ -106,15 +106,31 @@ async function geminiRequest(model, prompt) {
   });
 }
 
+// Gemini sometimes answers "busy" (503) or "slow down" (429). Wait and try
+// again a few times before giving up on AI for this batch.
+const BUSY_WAITS_MS = [10000, 30000, 60000];
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function geminiWithRetry(model, prompt) {
+  let res = await geminiRequest(model, prompt);
+  for (const wait of BUSY_WAITS_MS) {
+    if (![429, 500, 503].includes(res.status)) break;
+    log(`Gemini is busy (HTTP ${res.status}); trying again in ${wait / 1000}s`);
+    await sleep(wait);
+    res = await geminiRequest(model, prompt);
+  }
+  return res;
+}
+
 async function callGemini(prompt) {
   geminiModel ||= config.geminiModel;
-  let res = await geminiRequest(geminiModel, prompt);
+  let res = await geminiWithRetry(geminiModel, prompt);
   if (res.status === 404) {
     const replacement = await discoverGeminiModel();
     if (replacement && replacement !== geminiModel) {
       log(`Gemini model ${geminiModel} is retired; switching to ${replacement}. Set GEMINI_MODEL=${replacement} to skip this check.`);
       geminiModel = replacement;
-      res = await geminiRequest(geminiModel, prompt);
+      res = await geminiWithRetry(geminiModel, prompt);
     }
   }
   if (!res.ok) throw new Error(`Gemini (${geminiModel}) HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
@@ -141,6 +157,8 @@ async function callGroq(prompt) {
 }
 
 // Keyword fallback: used in mock mode without keys, or if every AI call fails.
+export const KEYWORD_SCORE_NOTE = 'Scored by keyword match';
+
 export function heuristicScore(job, profile) {
   // Test fixtures carry the score a real model would give
   if (config.mock && Number.isFinite(job.mock_fit_score)) {
@@ -155,7 +173,7 @@ export function heuristicScore(job, profile) {
   return {
     role_family: job.role_family,
     fit_score: Math.min(100, score),
-    why_fit: 'Scored by keyword match (AI scoring was unavailable for this run).',
+    why_fit: `${KEYWORD_SCORE_NOTE} (AI scoring was unavailable for this run).`,
     red_flags: '',
     us_only: false,
   };
@@ -207,7 +225,9 @@ export async function scoreJobs(jobs, profile) {
     batch.forEach((job, idx) => {
       const r = results?.find((x) => Number(x.id) === idx);
       if (!results) provider = hasAi ? 'partial-heuristic' : 'heuristic';
-      scored.push({ ...job, ...(r ? sanitize(r, job) : heuristicScore(job, profile)) });
+      // scored_by tells the run whether a real AI judged this job
+      scored.push(r ? { ...job, ...sanitize(r, job), scored_by: 'ai' }
+        : { ...job, ...heuristicScore(job, profile), scored_by: config.mock && Number.isFinite(job.mock_fit_score) ? 'ai' : 'heuristic' });
     });
   }
   return { scored, errors, provider };
