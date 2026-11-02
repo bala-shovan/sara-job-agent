@@ -102,24 +102,46 @@ async function geminiRequest(model, prompt) {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
     }),
-    signal: AbortSignal.timeout(90000),
+    signal: AbortSignal.timeout(150000),
   });
 }
 
 // Gemini sometimes answers "busy" (503) or "slow down" (429). Wait and try
 // again a few times before giving up on AI for this batch.
-const BUSY_WAITS_MS = [10000, 30000, 60000];
+const BUSY_WAITS_MS = [15000, 45000];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function geminiWithRetry(model, prompt) {
-  let res = await geminiRequest(model, prompt);
-  for (const wait of BUSY_WAITS_MS) {
-    if (![429, 500, 503].includes(res.status)) break;
+// A timeout or network error counts as "busy" too
+async function safeRequest(model, prompt) {
+  try {
+    return await geminiRequest(model, prompt);
+  } catch (e) {
+    log(`Gemini (${model}) did not answer: ${e.message.slice(0, 80)}`);
+    return { status: 504, ok: false, text: async () => e.message };
+  }
+}
+
+async function geminiWithRetry(model, prompt, waits = BUSY_WAITS_MS) {
+  let res = await safeRequest(model, prompt);
+  for (const wait of waits) {
+    if (![429, 500, 503, 504].includes(res.status)) break;
     log(`Gemini is busy (HTTP ${res.status}); trying again in ${wait / 1000}s`);
     await sleep(wait);
-    res = await geminiRequest(model, prompt);
+    res = await safeRequest(model, prompt);
   }
   return res;
+}
+
+// Another stable Flash model to fall back to while the main one is busy
+async function alternateFlashModel(current) {
+  try {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', {
+      headers: { 'x-goog-api-key': config.geminiApiKey }, signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) return null;
+    const models = ((await res.json()).models || []).filter((m) => m.name.replace(/^models\//, '') !== current);
+    return pickFlashModel(models);
+  } catch { return null; }
 }
 
 async function callGemini(prompt) {
@@ -131,6 +153,13 @@ async function callGemini(prompt) {
       log(`Gemini model ${geminiModel} is retired; switching to ${replacement}. Set GEMINI_MODEL=${replacement} to skip this check.`);
       geminiModel = replacement;
       res = await geminiWithRetry(geminiModel, prompt);
+    }
+  }
+  if ([429, 500, 503, 504].includes(res.status)) {
+    const backup = await alternateFlashModel(geminiModel);
+    if (backup) {
+      log(`Gemini ${geminiModel} is still busy; trying ${backup} for this batch`);
+      res = await geminiWithRetry(backup, prompt, [15000]);
     }
   }
   if (!res.ok) throw new Error(`Gemini (${geminiModel}) HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
