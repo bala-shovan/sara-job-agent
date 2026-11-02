@@ -24,20 +24,47 @@ for (const job of fixtures.jobs) {
   test(`${job.expect} — ${job.title} @ ${job.company}`, () => {
     if (job.expect.startsWith('PICK')) assert.ok(pickUrls.has(job.url), 'expected to be picked');
     if (job.expect.startsWith('CANDIDATE')) assert.ok(rankedUrls.has(job.url), 'expected to reach scoring');
+    if (job.expect.startsWith('BELOW')) {
+      assert.ok(rankedUrls.has(job.url), 'expected to reach scoring');
+      assert.ok(!pickUrls.has(job.url), 'expected to be dropped for a match below the minimum');
+    }
     if (job.expect.startsWith('DROP') || job.expect.startsWith('DEDUPE')) {
       assert.ok(!rankedUrls.has(job.url), 'expected to be filtered out before scoring');
     }
   });
 }
 
-test('never more than picks_per_day picks', () => {
-  assert.ok(result.picks.length <= defaultProfile.picks_per_day);
+test('each list stays within its picks (5 Product + 5 Technical Support)', () => {
+  for (const g of defaultProfile.pick_groups) {
+    const n = result.picks.filter((p) => g.families.includes(p.role_family)).length;
+    assert.ok(n <= g.picks, `${g.label}: ${n} picks`);
+  }
 });
 
-test('picks are sorted best first and above the quality bar', () => {
-  const scores = result.picks.map((p) => p.final_score);
-  assert.deepEqual(scores, [...scores].sort((a, b) => b - a));
-  assert.ok(scores.every((s) => s >= defaultProfile.min_final_score));
+test('every pick is at least a 75% match, best first within its list', () => {
+  for (const g of defaultProfile.pick_groups) {
+    const scores = result.picks.filter((p) => g.families.includes(p.role_family)).map((p) => p.fit_score);
+    assert.deepEqual(scores, [...scores].sort((a, b) => b - a));
+  }
+  assert.ok(result.picks.every((p) => p.fit_score >= 75));
+});
+
+test('reads the years of experience a posting asks for', async () => {
+  const { requiredYears } = await import('../src/filter.js');
+  assert.equal(requiredYears('5+ years of experience in support'), 5);
+  assert.equal(requiredYears('3-5 years experience with SaaS'), 3);
+  assert.equal(requiredYears('at least seven years of technical support experience'), 7);
+  assert.equal(requiredYears('2+ years in product and 5+ years overall experience'), 5);
+  assert.equal(requiredYears('Founded 10 years ago, we are growing'), null);
+});
+
+test('a busy list cannot use the whole AI budget', async () => {
+  const { capForScoring } = await import('../src/filter.js');
+  const jobs = Array.from({ length: 30 }, (_, i) => ({ url: `p${i}`, role_family: 'pm' }))
+    .concat(Array.from({ length: 30 }, (_, i) => ({ url: `s${i}`, role_family: 'support_engineer' })));
+  const chosen = capForScoring(jobs, defaultProfile, 20);
+  assert.equal(chosen.filter((j) => j.role_family === 'pm').length, 10);
+  assert.equal(chosen.filter((j) => j.role_family === 'support_engineer').length, 10);
 });
 
 test('apply links come from the source, never the AI', () => {

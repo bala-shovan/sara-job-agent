@@ -5,6 +5,7 @@
 import { readFile } from 'node:fs/promises';
 import { config } from './config.js';
 import { truncate, log } from './util.js';
+import { pickGroups, minFit } from './groups.js';
 
 const FAMILIES = ['pm', 'support_engineer', 'support_lead', 'csm', 'other'];
 
@@ -39,6 +40,10 @@ export function buildPrompt(profileText, jobs, profile) {
   const regions = list(profile?.locations?.remote_allowed) || 'worldwide';
   const cities = list(profile?.locations?.onsite_cities);
   const usOnly = profile?.exclusions?.drop_us_only_remote !== false;
+  const targets = pickGroups(profile)
+    .filter((g) => g.min_years)
+    .map((g) => `- ${g.label} roles (${g.families.join(', ')}): ${g.senior_only ? 'senior level, ' : ''}postings that ask for ${g.min_years}+ years of experience.`)
+    .join('\n');
 
   return `You are Sara, a careful job-matching assistant. Score how well each job fits this candidate.
 
@@ -51,7 +56,7 @@ SCORING RUBRIC (total 0-100)
 - Domain fit (0-20): matches industries and products the candidate has worked in, as described above.
 - Location eligibility (0-20): remote and open to candidates in ${regions}${cities ? `, or on-site/hybrid in ${cities}` : ''}.${usOnly ? ' A remote job limited to US residents or requiring US work authorization gets 0 here and us_only = true.' : ''}
 
-Be strict and honest. Do not inflate scores. Base every judgment only on the job text given.
+${targets ? `EXPERIENCE TARGETS\n${targets}\nA job below its target level, or asking for clearly more experience than the candidate has, scores lower on experience.\n\n` : ''}Only jobs scoring ${minFit(profile)} or more will be shown to the candidate. Be strict and honest. Do not inflate scores. Base every judgment only on the job text given.
 
 JOBS
 ${JSON.stringify(jobList, null, 1)}
@@ -134,6 +139,10 @@ async function callGroq(prompt) {
 
 // Keyword fallback: used in mock mode without keys, or if every AI call fails.
 export function heuristicScore(job, profile) {
+  // Test fixtures carry the score a real model would give
+  if (config.mock && Number.isFinite(job.mock_fit_score)) {
+    return { role_family: job.role_family, fit_score: job.mock_fit_score, why_fit: 'Sample job (mock mode).', red_flags: '', us_only: false };
+  }
   const text = `${job.title} ${job.description || ''}`.toLowerCase();
   let score = 45;
   const domain = ['saas', 'b2b', 'logistics', 'delivery', 'fleet', 'route', 'content', 'martech', 'cms', 'ai ', 'llm', 'api'];

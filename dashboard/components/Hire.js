@@ -21,7 +21,7 @@ function Review({ draft }) {
     ['On-site', draft.onsite_cities || 'None'],
     ['Minimum pay', draft.min_monthly_usd ? `$${Number(draft.min_monthly_usd).toLocaleString()} per month` : 'Any'],
     ['Schedule', `${hourLabel(draft.run_hour)}, ${daysLabel(draft.run_days)} (${draft.timezone.replace(/_/g, ' ')})`],
-    ['Picks', `Up to ${draft.picks_per_day} per run, emailed to ${draft.email_to}`],
+    ['Picks', `${draft.pick_groups ? draft.pick_groups.map((g) => `${g.picks} ${g.label}`).join(' + ') : `Up to ${draft.picks_per_day}`} per run, ${draft.min_fit_score}%+ match, emailed to ${draft.email_to}`],
   ];
   return (
     <dl className="review">

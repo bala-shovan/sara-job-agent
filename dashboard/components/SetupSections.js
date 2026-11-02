@@ -172,16 +172,38 @@ export function Alerts({ draft, set }) {
         </div>
       </div>
 
-      <div className="field-row">
+      {draft.pick_groups ? (
+        <fieldset className="field">
+          <legend>Daily picks</legend>
+          <p className="hint">Each list gets its own picks and experience rule.</p>
+          {draft.pick_groups.map((g, i) => {
+            const setGroup = (patch) => set({ pick_groups: draft.pick_groups.map((x, j) => (j === i ? { ...x, ...patch } : x)) });
+            return (
+              <div className="field-row" key={g.key}>
+                <div className="field">
+                  <label htmlFor={`picks-${g.key}`}>{g.label}: picks per run</label>
+                  <input id={`picks-${g.key}`} type="number" min="0" max="10" value={g.picks} onChange={(e) => setGroup({ picks: e.target.value })} />
+                </div>
+                <div className="field">
+                  <label htmlFor={`years-${g.key}`}>{g.label}: years the job asks for</label>
+                  <input id={`years-${g.key}`} type="number" min="0" max="20" value={g.min_years} onChange={(e) => setGroup({ min_years: e.target.value })} />
+                  <p className="hint">{g.senior_only ? 'Senior-level roles only. ' : ''}Jobs asking for fewer years are skipped.</p>
+                </div>
+              </div>
+            );
+          })}
+        </fieldset>
+      ) : (
         <div className="field">
           <label htmlFor="ppd">Picks per run</label>
           <input id="ppd" type="number" min="1" max="10" value={draft.picks_per_day} onChange={(e) => set({ picks_per_day: e.target.value })} />
         </div>
-        <div className="field">
-          <label htmlFor="bar">Quality bar</label>
-          <input id="bar" type="number" min="0" max="115" value={draft.min_final_score} onChange={(e) => set({ min_final_score: e.target.value })} />
-          <p className="hint">Fit score plus priority bonus. Sara sends fewer picks rather than weak ones.</p>
-        </div>
+      )}
+
+      <div className="field">
+        <label htmlFor="minfit">Minimum match (%)</label>
+        <input id="minfit" type="number" min="0" max="100" value={draft.min_fit_score} onChange={(e) => set({ min_fit_score: e.target.value })} />
+        <p className="hint">How well a job must match your profile. Sara sends fewer picks rather than weaker ones.</p>
       </div>
     </>
   );

@@ -51,8 +51,14 @@ export const defaultProfile = {
   },
   seniority: ['mid', 'senior', 'lead'],
   min_monthly_usd: 2000,
-  picks_per_day: 5,
-  min_final_score: 60,
+  // Daily picks split into lists, each with its own experience rule
+  pick_groups: [
+    { key: 'product', label: 'Product', families: ['pm'], picks: 5, min_years: 2, senior_only: false },
+    { key: 'support', label: 'Technical Support', families: ['support_engineer', 'support_lead'], picks: 5, min_years: 7, senior_only: true },
+  ],
+  picks_per_day: 10,
+  min_fit_score: 75, // drop anything below a 75% match
+  min_final_score: 60, // legacy, no longer used
   run_time: '09:00 Asia/Dhaka',
   // Set from the dashboard (supabase/002_hire_sara.sql)
   candidate_profile: null, // null = fall back to candidate-profile.md

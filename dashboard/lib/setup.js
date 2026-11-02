@@ -57,6 +57,8 @@ export function blankProfile(email = '') {
     min_monthly_usd: 0,
     picks_per_day: 5,
     min_final_score: 60,
+    min_fit_score: 75,
+    pick_groups: null,
     run_hour: 9,
     run_days: [1, 2, 3, 4, 5],
     timezone: (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; } })(),
@@ -101,7 +103,8 @@ export function draftFromProfile(p) {
     run_days: p.run_days?.length ? p.run_days : [1, 2, 3, 4, 5, 6, 7],
     timezone: p.timezone || 'Asia/Dhaka',
     picks_per_day: p.picks_per_day ?? 5,
-    min_final_score: p.min_final_score ?? 60,
+    min_fit_score: p.min_fit_score ?? 75,
+    pick_groups: Array.isArray(p.pick_groups) && p.pick_groups.length ? p.pick_groups.map((g) => ({ ...g })) : null,
   };
 }
 
@@ -125,9 +128,21 @@ export function patchFromDraft(d, p) {
     run_hour: Number(d.run_hour),
     run_days: [...d.run_days].sort(),
     timezone: d.timezone,
-    picks_per_day: Math.max(1, Math.min(10, Number(d.picks_per_day) || 5)),
-    min_final_score: Math.max(0, Math.min(115, Number(d.min_final_score) || 60)),
+    ...(() => {
+      const clamp = (v, lo, hi, dflt) => { const n = Number(v); return Number.isFinite(n) && v !== '' ? Math.max(lo, Math.min(hi, Math.round(n))) : dflt; };
+      const groups = d.pick_groups?.map((g) => ({ ...g, picks: clamp(g.picks, 0, 10, 5), min_years: clamp(g.min_years, 0, 20, 0) })) || null;
+      return {
+        pick_groups: groups,
+        picks_per_day: groups ? Math.max(1, groups.reduce((n, g) => n + g.picks, 0)) : clamp(d.picks_per_day, 1, 10, 5),
+        min_fit_score: clamp(d.min_fit_score, 0, 100, 75),
+      };
+    })(),
   };
+}
+
+// Which pick list a role belongs to, or null when there are no lists
+export function groupOf(family, groups) {
+  return groups?.find((g) => g.families.includes(family)) || null;
 }
 
 // What's missing before Sara can be hired, step by step

@@ -363,3 +363,12 @@ code { font-size: 0.9em; padding: 1px 5px; border-radius: 4px; background: var(-
 /* Saved */
 .linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--go); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .saved-when { margin: 6px 0 0; font-size: var(--step--1); color: var(--muted); }
+
+/* Pick lists (Product, Technical Support) on Today */
+.pick-group { margin-top: 32px; }
+.pick-group-head { display: flex; align-items: baseline; gap: 10px; font-size: var(--step-1); margin: 0; }
+.pick-group-head span { font-size: var(--step--1); font-weight: 400; color: var(--muted); }
+.pick-group .picks { margin-top: 12px; }
+.pick-group-none { margin: 12px 0 0; padding: 20px 22px; background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius-m); color: var(--muted); }
+.score span { letter-spacing: -0.02em; }
+.score .pct { font-size: 0.5em; font-weight: 600; }

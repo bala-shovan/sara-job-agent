@@ -13,9 +13,10 @@ GitHub Actions (wakes hourly)
   → normalize into one schema
   then, for each person due, with their own settings:
   → dedupe against every job seen before (URL, source id, company + title)
-  → filter in code: role keywords, seniority, location, US-only, pay floor, age
+  → filter in code: role keywords, seniority, years of experience asked, location, US-only, pay floor, age
   → score with AI (Gemini, Groq fallback): 0–100 fit + "why it fits" + red flags
-  → rank: fit score + role-priority bonus → top 5 above the quality bar
+  → pick lists: 5 Product (roles asking 2+ years) + 5 Technical Support (senior, asking 7+ years),
+    each job a 75%+ match; fewer picks rather than weak ones
   → save to Supabase, log the run, email the picks
 ```
 
@@ -51,6 +52,8 @@ GitHub Actions (wakes hourly)
 | `supabase/002_hire_sara.sql` | Adds hiring, schedule, alert email and About you to the profile |
 | `supabase/003_multi_user.sql` | One Sara per person: user_id on every table, per-user security, invite list (max 5), sign-up gate |
 | `supabase/004_saved_jobs.sql` | Adds `saved_at` so picks can be saved for later |
+| `supabase/005_pick_lists.sql` | Pick lists (e.g. 5 Product + 5 Technical Support) with experience rules, and a minimum match |
+| `src/groups.js` | Pick lists and the minimum match |
 | `fixtures/sample-jobs.json` | Fictional jobs that exercise every rule |
 
 ## Dashboard
@@ -78,7 +81,7 @@ npm run dev       # demo mode works with no keys; add .env.local (see .env.examp
 
 ```bash
 npm install
-npm test          # 32 checks on sample jobs and the schedule, no network or keys needed
+npm test          # 39 checks on sample jobs and the schedule, no network or keys needed
 npm run dry-run   # full run on sample jobs; writes out/email-preview.html
 npm start         # real run (needs the environment variables in .env.example)
 ```
@@ -87,7 +90,7 @@ In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **A
 
 ## Setup
 
-1. Run `supabase/schema.sql` and `002_hire_sara.sql` in the Supabase SQL Editor, sign in to the dashboard once as the owner, then run `003_multi_user.sql` and `004_saved_jobs.sql`.
+1. Run `supabase/schema.sql` and `002_hire_sara.sql` in the Supabase SQL Editor, sign in to the dashboard once as the owner, then run `003_multi_user.sql`, `004_saved_jobs.sql` and `005_pick_lists.sql`.
 2. Add repository secrets (Settings → Secrets and variables → Actions): `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GEMINI_API_KEY`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and optionally `GROQ_API_KEY`.
 3. Deploy `dashboard/` to Vercel, sign in and hire Sara. To run her right away, use **Actions → Sara daily run → Run workflow**.
 

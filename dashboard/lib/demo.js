@@ -31,7 +31,7 @@ export const demoJobs = [
     location: 'Remote, APAC', remote_scope: 'Remote (APAC)', source: 'ashby:helpdeskly', url: 'https://example.com/helpdeskly',
     why_fit: 'API debugging in Postman, log analysis and Jira escalations are exactly what you did for six years supporting Optimizely CMP.',
     description: 'Debug customer API integrations, reproduce bugs, write escalations to engineering, and mentor junior support engineers.' }),
-  job({ title: 'Senior Product Manager, Content Platform', company: 'StoryHub', role_family: 'pm', fit_score: 74, final_score: 89, is_pick: true, found_at: todayRun,
+  job({ title: 'Senior Product Manager, Content Platform', company: 'StoryHub', role_family: 'pm', fit_score: 77, final_score: 92, is_pick: true, found_at: todayRun,
     location: 'Remote', remote_scope: 'Remote', source: 'lever:storyhub', url: 'https://example.com/storyhub',
     why_fit: 'Headless content platform for marketing teams; six years on Optimizely CMP gives you deep domain knowledge.',
     red_flags: 'Asks for 5+ years of PM experience.',
@@ -96,8 +96,13 @@ export const demoProfile = {
   exclusions: { drop_us_only_remote: true, drop_title_words: ['intern', 'internship', 'junior', 'entry level', 'director', 'vp', 'vice president', 'head of'] },
   seniority: ['mid', 'senior', 'lead'],
   min_monthly_usd: 2000,
-  picks_per_day: 5,
+  picks_per_day: 10,
   min_final_score: 60,
+  min_fit_score: 75,
+  pick_groups: [
+    { key: 'product', label: 'Product', families: ['pm'], picks: 5, min_years: 2, senior_only: false },
+    { key: 'support', label: 'Technical Support', families: ['support_engineer', 'support_lead'], picks: 5, min_years: 7, senior_only: true },
+  ],
   run_time: '09:00 Asia/Dhaka',
   candidate_profile: `Product Owner at a last-mile delivery and fleet management SaaS. Shipped bulk route optimization (helped win $45K and $250K ARR customers), an AI support chat, driver auto-assignment and integrations with Uber, DoorDash and Twilio Flex. Certified Scrum Product Owner.
 
