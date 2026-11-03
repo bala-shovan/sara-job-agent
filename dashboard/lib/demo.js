@@ -18,7 +18,7 @@ const job = (j) => ({
 
 export const demoJobs = [
   // Today's picks
-  job({ title: 'Senior Product Manager, AI Routing', company: 'RouteWise', role_family: 'pm', fit_score: 88, final_score: 103, is_pick: true, found_at: todayRun,
+  job({ title: 'Product Manager, AI Routing', company: 'RouteWise', role_family: 'pm', fit_score: 88, final_score: 103, is_pick: true, found_at: todayRun,
     salary_text: '$70,000–$95,000 per year', url: 'https://example.com/routewise',
     why_fit: 'Last-mile routing SaaS building AI dispatch: a direct match for your Bulk Route Optimization and driver auto-assignment work.',
     description: 'Own the AI dispatch roadmap for a B2B route optimization platform. Work with engineering on LLM-powered driver assignment, write PRDs and talk to customers.' }),
@@ -31,10 +31,10 @@ export const demoJobs = [
     location: 'Remote, APAC', remote_scope: 'Remote (APAC)', source: 'ashby:helpdeskly', url: 'https://example.com/helpdeskly',
     why_fit: 'API debugging in Postman, log analysis and Jira escalations are exactly what you did for six years supporting Optimizely CMP.',
     description: 'Debug customer API integrations, reproduce bugs, write escalations to engineering, and mentor junior support engineers.' }),
-  job({ title: 'Senior Product Manager, Content Platform', company: 'StoryHub', role_family: 'pm', fit_score: 77, final_score: 92, is_pick: true, found_at: todayRun,
+  job({ title: 'Product Manager, Content Platform', company: 'StoryHub', role_family: 'pm', fit_score: 77, final_score: 92, is_pick: true, found_at: todayRun,
     location: 'Remote', remote_scope: 'Remote', source: 'lever:storyhub', url: 'https://example.com/storyhub',
     why_fit: 'Headless content platform for marketing teams; six years on Optimizely CMP gives you deep domain knowledge.',
-    red_flags: 'Asks for 5+ years of PM experience.',
+    red_flags: 'Prefers 3+ years of PM experience.',
     description: 'Own the roadmap for a headless CMS used by marketing teams. Run discovery and define success metrics.' }),
   job({ title: 'Technical Support Team Lead', company: 'Bengal SaaS Ltd', role_family: 'support_lead', fit_score: 79, final_score: 84, is_pick: true, found_at: todayRun,
     location: 'Dhaka (Hybrid)', remote_scope: 'Dhaka hybrid', source: 'bdjobs', url: 'https://example.com/bengalsaas',
