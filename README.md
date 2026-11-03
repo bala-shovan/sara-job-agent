@@ -57,6 +57,7 @@ GitHub Actions (wakes hourly)
 | `supabase/002_hire_sara.sql` | Adds hiring, schedule, alert email and About you to the profile |
 | `supabase/003_multi_user.sql` | One Sara per person: user_id on every table, per-user security, invite list (max 5), sign-up gate |
 | `supabase/004_saved_jobs.sql` | Adds `saved_at` so picks can be saved for later |
+| `supabase/008_any_role.sql` | Jobs can be filed under any role, not just the original four |
 | `supabase/007_open_signup.sql` | Open sign-up with a cap of 50, waitlist, owner settings, delete-my-account |
 | `supabase/006_experience_levels.sql` | Revised experience levels for Bala's pick lists (data only) |
 | `supabase/005_pick_lists.sql` | Pick lists (e.g. 5 Product + 5 Technical Support) with experience rules, and a minimum match |
@@ -67,7 +68,7 @@ GitHub Actions (wakes hourly)
 
 `dashboard/` is a Next.js app where I hire Sara, configure her and track every application:
 
-- **Hire Sara**: a four-step setup (About you, Jobs you want, Alerts, Hire) that switches her on
+- **Hire Sara**: a four-step setup (About you, Jobs you want, Alerts, Hire) that switches her on. Upload a resume (PDF, Word or text, read in the browser) to fill in your experience; Sara suggests roles from it, and you can search about 40 common roles or add any role of your own
 
 - **Today**: the morning's picks with fit score, why each fits, red flags, and one-click Save, Mark applied, Not interested and good/bad ratings
 - **Saved**: jobs kept for later; saving a pick takes it off Today, so each morning's list shows only what's new
@@ -88,7 +89,7 @@ npm run dev       # demo mode works with no keys; add .env.local (see .env.examp
 
 ```bash
 npm install
-npm test          # 43 checks on sample jobs and the schedule, no network or keys needed
+npm test          # 51 checks on sample jobs and the schedule, no network or keys needed
 npm run dry-run   # full run on sample jobs; writes out/email-preview.html
 npm start         # real run (needs the environment variables in .env.example)
 ```
@@ -97,7 +98,7 @@ In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **A
 
 ## Setup
 
-1. Run `supabase/schema.sql` and `002_hire_sara.sql` in the Supabase SQL Editor, sign in to the dashboard once as the owner, then run `003_multi_user.sql`, `004_saved_jobs.sql` and `005_pick_lists.sql`.
+1. Run `supabase/schema.sql` and `002_hire_sara.sql` in the Supabase SQL Editor, sign in to the dashboard once as the owner, then run `003_multi_user.sql` through `008_any_role.sql` in order.
 2. Add repository secrets (Settings → Secrets and variables → Actions): `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GEMINI_API_KEY`, `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and optionally `GROQ_API_KEY`.
 3. Deploy `dashboard/` to Vercel, sign in and hire Sara. To run her right away, use **Actions → Sara daily run → Run workflow**.
 
