@@ -163,7 +163,13 @@ export async function run({ force = process.env.SARA_FORCE === '1' } = {}) {
     store = createStore({ existingJobs: fx.already_seen || [] });
   }
 
-  const due = await dueProfiles(store, force || config.mock);
+  let due = await dueProfiles(store, force || config.mock);
+  // Manual runs can target one person by their alert email
+  const only = (process.env.SARA_ONLY || '').trim().toLowerCase();
+  if (only) {
+    due = due.filter((p) => (p.email_to || '').toLowerCase() === only);
+    log(`Only running for ${only}: ${due.length ? 'found' : 'no matching on-duty Sara'}.`);
+  }
   if (!due.length) {
     log('Nobody is due right now.');
     return { users: [], store };

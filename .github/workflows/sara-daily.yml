@@ -7,8 +7,14 @@ on:
     # for those who are due. Most wake-ups finish in seconds. Minute 17
     # avoids GitHub's busy top of the hour.
     - cron: "17 * * * *"
-  # "Run workflow" button: runs every on-duty Sara right now, whatever the schedule says
+  # "Run workflow" button: runs on-duty Saras right now, whatever the schedule says.
+  # Fill in "only" with someone's alert email to run just their Sara.
   workflow_dispatch:
+    inputs:
+      only:
+        description: "Run only this person's Sara (their alert email). Leave empty to run everyone on duty."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -20,7 +26,8 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Up to 50 people, one after another, about 1-2 minutes each
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
@@ -55,3 +62,4 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
           SARA_FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
+          SARA_ONLY: ${{ github.event.inputs.only }}

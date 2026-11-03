@@ -5,6 +5,7 @@ import { draftFromProfile, patchFromDraft, problems, nextRunLabel, hourLabel, da
 import { AboutYou, JobsYouWant, Alerts } from './SetupSections';
 import Watchlist from './Watchlist';
 import Invites from './Invites';
+import DeleteAccount from './DeleteAccount';
 
 function Section({ id, title, intro, children }) {
   return (
@@ -96,6 +97,7 @@ export default function Settings({ sara, onReplay }) {
 
       <Watchlist sara={sara} />
       {sara.isOwner && sara.mode === 'live' && <Invites sara={sara} />}
+      {!sara.isOwner && sara.mode === 'live' && <DeleteAccount sara={sara} />}
     </>
   );
 }

@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { shortDate } from '../lib/format';
 
-const LIMIT = 5;
+const LIMIT = 20;
 
-// Owner only: the people allowed to sign up and hire their own Sara
+// Owner only: how full Sara is, people invited past the cap, and the waitlist
 export default function Invites({ sara }) {
   const [email, setEmail] = useState('');
   const [note, setNote] = useState('');
@@ -27,8 +27,11 @@ export default function Invites({ sara }) {
     <section aria-labelledby="invites-heading" style={{ marginTop: 40 }}>
       <div className="section-head">
         <div>
-          <h2 id="invites-heading">Who can use Sara</h2>
-          <p>Invite up to {LIMIT} people. Each gets their own private Sara; nobody else can sign up. Only you see this list.</p>
+          <h2 id="invites-heading">Who's using Sara</h2>
+          <p>
+            {sara.capacity ? <><strong>{sara.capacity.users} of {sara.capacity.cap}</strong> spots taken. </> : null}
+            Anyone can sign up until Sara is full. People you invite here always get in, even when she's full. Only you see this.
+          </p>
         </div>
       </div>
 
@@ -67,10 +70,31 @@ export default function Invites({ sara }) {
           <button className="btn btn-primary" disabled={busy || full}>{busy ? 'Inviting…' : 'Invite'}</button>
           <span className="hint">
             {full ? `The list is full (${LIMIT} of ${LIMIT}). Remove someone to invite another.`
-              : `${sara.invites.length} of ${LIMIT} invites used. Removing someone stops new sign-ins, not an account they already made.`}
+              : `${sara.invites.length} of ${LIMIT} invites used. Invited people skip the cap.`}
           </span>
         </div>
       </form>
+
+      <h3 style={{ marginTop: 28 }}>Waitlist</h3>
+      {sara.waitlist?.length ? (
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Email</th><th>Joined</th><th><span className="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+              {sara.waitlist.map((w) => (
+                <tr key={w.email}>
+                  <td>{w.email}</td>
+                  <td>{shortDate(w.joined_at)}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <button className="btn btn-quiet" onClick={async () => { if (await sara.addInvite(w.email, 'From the waitlist')) await sara.removeFromWaitlist(w.email); }}>Let in</button>
+                    <button className="btn btn-quiet" onClick={() => sara.removeFromWaitlist(w.email)}>Remove</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : <p className="hint">Nobody is waiting. When Sara is full, visitors can leave their email here.</p>}
     </section>
   );
 }

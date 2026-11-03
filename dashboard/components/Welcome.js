@@ -1,6 +1,6 @@
 'use client';
 
-import { SignInForm } from './SignIn';
+import { SignInForm, WaitlistForm } from './SignIn';
 
 const STEPS = [
   ['Hire her', 'Tell Sara about your experience, the roles you want, where you can work and your minimum pay.'],
@@ -28,14 +28,31 @@ export default function Welcome({ sara, onDemo }) {
       </div>
 
       <div className="welcome-signin">
-        <h2>Sign in</h2>
-        <SignInForm sara={sara} />
+        {(() => {
+          const cap = sara.capacity;
+          const left = cap ? Math.max(0, cap.cap - cap.users) : null;
+          return (
+            <>
+              <h2>{left === 0 ? 'Join the waitlist' : 'Get started free'}</h2>
+              {left !== null && left > 0 && (
+                <p className="spots"><strong>{left} of {cap.cap}</strong> free spots left</p>
+              )}
+              {left === 0 ? <WaitlistForm sara={sara} /> : <SignInForm sara={sara} />}
+            </>
+          );
+        })()}
         <p className="hint" style={{ marginTop: 14 }}>
-          Not invited? <button className="linkish" onClick={onDemo}>Explore the demo with sample jobs</button>.
+          Want to look around first? <button className="linkish" onClick={onDemo}>Explore the demo with sample jobs</button>.
         </p>
-        <p className="hint" style={{ marginTop: 10 }}>
-          Your settings and jobs are private to your account. Sara is run by Bala, who manages its database.
-        </p>
+        <details className="privacy">
+          <summary>What Sara stores, and who can see it</summary>
+          <p>
+            Sara stores your email, the profile and job preferences you enter, the jobs she finds for you and your notes on them.
+            Your account is private: other users can't see it. Sara is a personal project run by Bala (Anik Shovan Bala), who manages
+            the database and can see stored data. Your profile text is sent to Google's Gemini AI to score jobs. Don't enter phone
+            numbers, addresses or anything sensitive. You can delete your account and all its data any time in Settings.
+          </p>
+        </details>
       </div>
     </section>
   );

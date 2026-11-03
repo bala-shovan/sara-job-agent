@@ -1,6 +1,6 @@
 # Sara — AI job search agent
 
-Sara is an invite-only job-search agent you **hire from a dashboard**: each invited person signs in and gets their own private Sara. You tell her about your experience, the jobs you want and when you want alerts; she checks job boards and company careers pages on that schedule and emails the best matches with apply links. She runs entirely on free tiers ($0/month).
+Sara is a free job-search agent anyone can **hire from a dashboard** (up to 50 people): each person signs in with an email link and gets their own private Sara. You tell her about your experience, the jobs you want and when you want alerts; she checks job boards and company careers pages on that schedule and emails the best matches with apply links. She runs entirely on free tiers ($0/month).
 
 Built by Anik Shovan (Bala) as a portfolio project: from PRD to architecture to a shipped, working agent.
 
@@ -53,6 +53,7 @@ GitHub Actions (wakes hourly)
 | `supabase/002_hire_sara.sql` | Adds hiring, schedule, alert email and About you to the profile |
 | `supabase/003_multi_user.sql` | One Sara per person: user_id on every table, per-user security, invite list (max 5), sign-up gate |
 | `supabase/004_saved_jobs.sql` | Adds `saved_at` so picks can be saved for later |
+| `supabase/007_open_signup.sql` | Open sign-up with a cap of 50, waitlist, owner settings, delete-my-account |
 | `supabase/006_experience_levels.sql` | Revised experience levels for Bala's pick lists (data only) |
 | `supabase/005_pick_lists.sql` | Pick lists (e.g. 5 Product + 5 Technical Support) with experience rules, and a minimum match |
 | `src/groups.js` | Pick lists and the minimum match |
@@ -71,7 +72,7 @@ GitHub Actions (wakes hourly)
 - **Settings**: pause or resume Sara, and edit everything from setup (roles and their priority, levels, regions, pay floor, schedule, alert email) plus the company watchlist, without touching code
 - **Activity**: each run's funnel, from jobs fetched to picks, plus any source errors
 
-Signed out, visitors see a welcome page with sign-in and a **demo with fictional sample jobs**. Sign-in is an email magic link, and only emails on the owner's invite list (up to 5, managed in Settings) can create an account; a database trigger enforces it. Row Level Security gives each person access to their own rows only.
+Signed out, visitors see a welcome page with sign-up, the number of free spots left and a **demo with fictional sample jobs**. Sign-in is an email magic link. Anyone can sign up until Sara has 50 people (a database trigger enforces the cap); after that visitors join a waitlist. The owner can invite people past the cap and let people in from the waitlist in Settings. Row Level Security gives each person access to their own rows only, and anyone can delete their account and data in Settings.
 
 ```bash
 cd dashboard
@@ -88,7 +89,7 @@ npm run dry-run   # full run on sample jobs; writes out/email-preview.html
 npm start         # real run (needs the environment variables in .env.example)
 ```
 
-In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **Actions → Sara daily run → Run workflow**.
+In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **Actions → Sara daily run → Run workflow** (fill in **only** with someone's alert email to run just their Sara).
 
 ## Setup
 

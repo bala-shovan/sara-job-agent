@@ -377,3 +377,13 @@ code { font-size: 0.9em; padding: 1px 5px; border-radius: 4px; background: var(-
 .pick-list-name span { font-weight: 400; color: var(--muted); }
 .field-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 560px) { .field-row.three { grid-template-columns: 1fr; } }
+
+/* Public sign-up */
+.spots { margin: 0 0 12px; color: var(--muted); }
+.spots strong { color: var(--go); }
+.privacy { margin-top: 12px; font-size: var(--step--1); color: var(--muted); }
+.privacy summary { cursor: pointer; color: var(--ink); }
+.privacy p { margin: 8px 0 0; line-height: 1.5; }
+.danger-zone { border-color: var(--exit, #b42318); }
+.btn-danger { background: #b42318; border-color: #b42318; color: #fff; }
+.btn-danger:hover { background: #912018; }

@@ -5,7 +5,7 @@ import { supabase } from './supabase';
 import { demoJobs, demoRuns, demoProfile, demoCompanies } from './demo';
 import { OWNER_EMAIL, DEFAULT_WATCHLIST } from './setup';
 
-const demoData = () => ({ jobs: demoJobs, runs: demoRuns, profile: demoProfile, companies: demoCompanies, invites: [] });
+const demoData = () => ({ jobs: demoJobs, runs: demoRuns, profile: demoProfile, companies: demoCompanies, invites: [], waitlist: [] });
 
 // One hook for all of Sara's data. Signed in: the person's own Sara (Row
 // Level Security returns only their rows). Signed out: the demo, with
@@ -17,6 +17,8 @@ export function useSara() {
   const [loaded, setLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  // How full Sara is: { users, cap }. Public numbers only.
+  const [capacity, setCapacity] = useState(null);
 
   const mode = session ? 'live' : 'demo';
   const email = session?.user?.email?.toLowerCase() || '';
@@ -34,6 +36,13 @@ export function useSara() {
 
   const notify = useCallback((text, tone = 'ok') => setMessage({ text, tone, at: Date.now() }), []);
 
+  const loadCapacity = useCallback(async () => {
+    if (!supabase) return;
+    const { data: cap, error } = await supabase.rpc('sara_capacity');
+    if (!error && cap) setCapacity(cap);
+  }, []);
+  useEffect(() => { loadCapacity(); }, [loadCapacity]);
+
   useEffect(() => {
     if (!message) return;
     const t = setTimeout(() => setMessage(null), 4500);
@@ -47,12 +56,13 @@ export function useSara() {
       return;
     }
     setLoading(true);
-    const [jobs, runs, profile, companies, invites] = await Promise.all([
+    const [jobs, runs, profile, companies, invites, waitlist] = await Promise.all([
       supabase.from('jobs').select('*').order('found_at', { ascending: false }).limit(500),
       supabase.from('runs').select('*').order('started_at', { ascending: false }).limit(30),
       supabase.from('profile').select('*').eq('user_id', session.user.id).maybeSingle(),
       supabase.from('companies').select('*').order('name'),
       isOwner ? supabase.from('invites').select('*').order('invited_at') : Promise.resolve({ data: [] }),
+      isOwner ? supabase.from('waitlist').select('*').order('joined_at') : Promise.resolve({ data: [] }),
     ]);
     setLoading(false);
     setLoaded(true);
@@ -64,6 +74,7 @@ export function useSara() {
       profile: profile.data || null,
       companies: companies.data || [],
       invites: invites.data || [],
+      waitlist: waitlist.data || [],
     });
   }, [session, isOwner, notify]);
 
@@ -173,7 +184,7 @@ export function useSara() {
     const { data: saved, error } = await supabase.from('invites').insert(row).select().single();
     if (error) {
       notify(error.code === '23505' ? `${row.email} is already invited.`
-        : /row-level security/i.test(error.message) ? 'The invite list is full (5 people). Remove someone to add another.'
+        : /row-level security/i.test(error.message) ? 'The invite list is full (20 people). Remove someone to add another.'
         : `Couldn't add the invite: ${error.message}`, 'error');
       return false;
     }
@@ -195,13 +206,39 @@ export function useSara() {
       options: { emailRedirectTo: window.location.origin, shouldCreateUser: true },
     });
     if (error) {
-      const notInvited = /SARA_NOT_INVITED|database error saving new user/i.test(error.message);
+      // The sign-up gate refuses new people once Sara is full
+      const full = /SARA_FULL|SARA_NOT_INVITED|database error saving new user/i.test(error.message);
       const rateLimited = /rate limit|too many/i.test(error.message);
-      notify(notInvited ? `${signInEmail} isn't invited yet. Ask Bala for an invite.`
-        : rateLimited ? 'Too many sign-in emails were sent in the last hour. Try again a little later.'
+      if (full) { loadCapacity(); return 'full'; }
+      notify(rateLimited ? 'Too many sign-in emails were sent in the last hour. Try again a little later.'
         : `Couldn't send the sign-in link: ${error.message}`, 'error');
       return false;
     }
+    return true;
+  }, [notify, loadCapacity]);
+
+  // Anyone, signed in or not: leave an email for when a spot opens
+  const joinWaitlist = useCallback(async (waitEmail) => {
+    const email = waitEmail.trim().toLowerCase();
+    const { error } = await supabase.from('waitlist').insert({ email });
+    if (error && error.code !== '23505') { notify(`Couldn't join the waitlist: ${error.message}`, 'error'); return false; }
+    return true;
+  }, [notify]);
+
+  const removeFromWaitlist = useCallback(async (waitEmail) => {
+    const { error } = await supabase.from('waitlist').delete().eq('email', waitEmail);
+    if (error) { notify(`Couldn't remove ${waitEmail}: ${error.message}`, 'error'); return false; }
+    setData((d) => ({ ...d, waitlist: d.waitlist.filter((w) => w.email !== waitEmail) }));
+    return true;
+  }, [notify]);
+
+  // Deletes the account and everything Sara stored for it
+  const deleteAccount = useCallback(async () => {
+    const { error } = await supabase.rpc('delete_my_account');
+    if (error) { notify(`Couldn't delete your account: ${error.message}`, 'error'); return false; }
+    await supabase.auth.signOut();
+    setSession(null);
+    notify('Your account and all of Sara\'s data for it are deleted.');
     return true;
   }, [notify]);
 
@@ -211,8 +248,8 @@ export function useSara() {
   }, []);
 
   return {
-    mode, session, email, isOwner, authReady, loaded, loading, canSignIn: Boolean(supabase),
+    mode, session, email, isOwner, authReady, loaded, loading, canSignIn: Boolean(supabase), capacity,
     ...data, message, notify, reload: load,
-    updateJob, toggleSaved, savedNeedsMigration, addJob, saveProfile, updateCompany, addCompany, addInvite, removeInvite, signIn, signOut,
+    updateJob, toggleSaved, savedNeedsMigration, addJob, saveProfile, updateCompany, addCompany, addInvite, removeInvite, joinWaitlist, removeFromWaitlist, deleteAccount, signIn, signOut,
   };
 }
