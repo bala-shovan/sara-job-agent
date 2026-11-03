@@ -2,6 +2,38 @@
 
 import { useState } from 'react';
 import { DAYS, SENIORITY, hourLabel, timeZones, PRIORITY_BONUS } from '../lib/setup';
+import { suggestRoles, searchRoles, customRole } from '../lib/roles';
+import { readResume, RESUME_ACCEPT } from '../lib/resume';
+
+// Upload a resume to fill in "Your experience". Read in the browser only.
+function ResumeUpload({ draft, set }) {
+  const [state, setState] = useState({ busy: false, note: '', error: '' });
+  async function onFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (draft.candidate_profile.trim() && !window.confirm('Replace what\'s in "Your experience" with the text from your resume?')) return;
+    setState({ busy: true, note: '', error: '' });
+    try {
+      const { text, trimmed } = await readResume(file);
+      set({ candidate_profile: text });
+      setState({ busy: false, error: '', note: `Filled in from ${file.name}${trimmed ? ' (shortened to fit)' : ''}. Phone numbers and emails were removed. Check it reads right, and edit anything.` });
+    } catch (err) {
+      setState({ busy: false, note: '', error: err.message || 'Couldn\'t read that file.' });
+    }
+  }
+  return (
+    <div className="resume-upload">
+      <label className="btn" htmlFor="resume-file" aria-disabled={state.busy}>
+        {state.busy ? 'Reading your resume…' : 'Upload your resume'}
+      </label>
+      <input id="resume-file" type="file" accept={RESUME_ACCEPT} onChange={onFile} disabled={state.busy} className="visually-hidden" />
+      <span className="hint">PDF, Word (.docx) or text. Sara reads it in your browser and keeps only the text below.</span>
+      {state.note && <p className="hint" role="status" style={{ margin: '8px 0 0' }}>{state.note}</p>}
+      {state.error && <p className="hint hint-warn" role="alert" style={{ margin: '8px 0 0' }}>{state.error}</p>}
+    </div>
+  );
+}
 
 export function AboutYou({ draft, set }) {
   return (
@@ -13,9 +45,10 @@ export function AboutYou({ draft, set }) {
     <div className="field">
       <label htmlFor="about">Your experience</label>
       <p className="hint">
-        Paste a summary of your CV: roles, companies, what you shipped, tools you know, where you're based.
-        Sara reads this to judge every job. Leave out your phone number and address.
+        Upload your resume, or paste a summary: roles, companies, what you shipped, tools you know, where you're based.
+        Sara reads this to judge every job and to suggest roles for you. Leave out your phone number and address.
       </p>
+      <ResumeUpload draft={draft} set={set} />
       <textarea
         id="about" className="tall" value={draft.candidate_profile}
         placeholder="Senior product manager, 6 years in B2B SaaS. Led payments and onboarding at a fintech, shipped an AI assistant. Based in Singapore, open to remote roles in APAC…"
@@ -27,25 +60,22 @@ export function AboutYou({ draft, set }) {
   );
 }
 
-function RoleRow({ role, index, firstEnabled, total, update, move }) {
+function RoleRow({ role, index, total, update, move, remove }) {
   const [open, setOpen] = useState(false);
-  const rank = role.enabled ? index + 1 : null;
   return (
-    <li className={`role ${role.enabled ? '' : 'role-off'}`}>
+    <li className="role">
       <div className="role-main">
-        <label className="role-check">
-          <input type="checkbox" checked={role.enabled} onChange={(e) => update({ enabled: e.target.checked })} />
+        <span className="role-check">
           <span>
             <strong>{role.label}</strong>
-            <span className="hint">
-              {role.enabled ? `Priority ${rank}${PRIORITY_BONUS[index] ? `, ranks +${PRIORITY_BONUS[index]}` : ''}` : 'Not searching'}
-            </span>
+            <span className="hint">Priority {index + 1}{PRIORITY_BONUS[index] ? `, ranks +${PRIORITY_BONUS[index]}` : ''}</span>
           </span>
-        </label>
+        </span>
         <span className="role-tools">
           <button type="button" className="btn btn-quiet" onClick={() => setOpen(!open)} aria-expanded={open}>Title phrases</button>
-          <button type="button" className="btn btn-quiet" disabled={!role.enabled || index === firstEnabled} onClick={() => move(-1)} aria-label={`Move ${role.label} up`}>Up</button>
-          <button type="button" className="btn btn-quiet" disabled={!role.enabled || index === total - 1} onClick={() => move(1)} aria-label={`Move ${role.label} down`}>Down</button>
+          <button type="button" className="btn btn-quiet" disabled={index === 0} onClick={() => move(-1)} aria-label={`Move ${role.label} up`}>Up</button>
+          <button type="button" className="btn btn-quiet" disabled={index === total - 1} onClick={() => move(1)} aria-label={`Move ${role.label} down`}>Down</button>
+          <button type="button" className="btn btn-quiet" onClick={remove} aria-label={`Remove ${role.label}`}>Remove</button>
         </span>
       </div>
       {open && (
@@ -58,34 +88,98 @@ function RoleRow({ role, index, firstEnabled, total, update, move }) {
   );
 }
 
-export function JobsYouWant({ draft, set }) {
-  // Enabled roles first, in priority order
-  const roles = [...draft.roles.filter((r) => r.enabled), ...draft.roles.filter((r) => !r.enabled)];
-  const enabledCount = roles.filter((r) => r.enabled).length;
+// Pick roles: suggestions from the person's experience, a search across
+// common roles, or any role they type
+function RolePicker({ draft, set }) {
+  const [query, setQuery] = useState('');
+  const roles = draft.roles;
+  const chosen = roles.map((r) => r.family);
+  const add = (r) => {
+    set({ roles: [...roles, { family: r.family, label: r.label, enabled: true, keywords: r.keywords.join(', ') }] });
+    setQuery('');
+  };
   const updateRole = (family, patch) => set({ roles: roles.map((r) => (r.family === family ? { ...r, ...patch } : r)) });
   const moveRole = (i, dir) => {
     const next = [...roles];
     [next[i], next[i + dir]] = [next[i + dir], next[i]];
     set({ roles: next });
   };
+  const removeRole = (family) => set({ roles: roles.filter((r) => r.family !== family) });
+
+  const suggested = suggestRoles(draft.candidate_profile, chosen);
+  const results = searchRoles(query, chosen);
+  const typed = query.trim();
+  // Offer "add your own" only when nothing listed already covers what they typed
+  const covered = results.some((r) => r.label.toLowerCase().includes(typed.toLowerCase()) || r.keywords.some((k) => k.includes(typed.toLowerCase())));
+  const custom = typed.length >= 3 && !covered ? customRole(typed) : null;
+  const customTaken = custom && chosen.includes(custom.family);
+
+  return (
+    <div className="field">
+      <span className="label">Roles, highest priority first</span>
+      <p className="hint">Sara searches every role you add. When she has to choose, higher-priority roles win.</p>
+
+      {roles.length > 0 ? (
+        <ul className="roles">
+          {roles.map((r, i) => (
+            <RoleRow
+              key={r.family} role={r} index={i} total={roles.length}
+              update={(patch) => updateRole(r.family, patch)} move={(dir) => moveRole(i, dir)} remove={() => removeRole(r.family)}
+            />
+          ))}
+        </ul>
+      ) : <p className="notice" style={{ margin: '6px 0 0' }}>No roles yet. Add one from the suggestions or search below.</p>}
+
+      {suggested.length > 0 && (
+        <div className="role-suggest">
+          <span className="hint">Suggested from your experience</span>
+          <div className="chips">
+            {suggested.map((r) => (
+              <button type="button" key={r.family} className="chip" onClick={() => add(r)}>+ {r.label}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="role-search">
+        <label htmlFor="role-q" className="hint">Find a role</label>
+        <input
+          id="role-q" value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off"
+          placeholder="Search roles, e.g. data analyst, designer, recruiter"
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (results[0]) add(results[0]); else if (custom && !customTaken) add(custom); } }}
+        />
+        {typed && (
+          <ul className="role-results" role="listbox" aria-label="Matching roles">
+            {results.map((r) => (
+              <li key={r.family}>
+                <button type="button" className="role-result" onClick={() => add(r)}>
+                  <strong>{r.label}</strong> <span className="hint">{r.group}</span>
+                </button>
+              </li>
+            ))}
+            {custom && !customTaken && (
+              <li>
+                <button type="button" className="role-result" onClick={() => add(custom)}>
+                  <strong>Add “{custom.label}”</strong> <span className="hint">Your own role: Sara looks for job titles containing “{custom.keywords[0]}”</span>
+                </button>
+              </li>
+            )}
+            {!results.length && !custom && <li className="hint" style={{ padding: '8px 10px' }}>Keep typing to search, or add your own role.</li>}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function JobsYouWant({ draft, set }) {
   const toggleLevel = (v) => set({
     seniority: draft.seniority.includes(v) ? draft.seniority.filter((x) => x !== v) : [...draft.seniority, v],
   });
 
   return (
     <>
-      <div className="field">
-        <span className="label">Roles, highest priority first</span>
-        <p className="hint">Sara searches every role you tick. When she has to choose, higher-priority roles win.</p>
-        <ul className="roles">
-          {roles.map((r, i) => (
-            <RoleRow
-              key={r.family} role={r} index={i} firstEnabled={0} total={enabledCount}
-              update={(patch) => updateRole(r.family, patch)} move={(dir) => moveRole(i, dir)}
-            />
-          ))}
-        </ul>
-      </div>
+      <RolePicker draft={draft} set={set} />
 
       <fieldset className="field">
         <legend className="label">Levels</legend>

@@ -387,3 +387,14 @@ code { font-size: 0.9em; padding: 1px 5px; border-radius: 4px; background: var(-
 .danger-zone { border-color: var(--exit, #b42318); }
 .btn-danger { background: #b42318; border-color: #b42318; color: #fff; }
 .btn-danger:hover { background: #912018; }
+
+/* Resume upload and role picker */
+.resume-upload { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 4px 0 10px; }
+.resume-upload label.btn { cursor: pointer; }
+.resume-upload input:focus-visible + .hint, .resume-upload label.btn:focus-within { outline: 2px solid var(--go); }
+.resume-upload p { flex-basis: 100%; }
+.role-suggest { margin-top: 16px; display: grid; gap: 8px; }
+.role-search { margin-top: 16px; position: relative; display: grid; gap: 6px; }
+.role-results { list-style: none; margin: 0; padding: 4px; border: 1px solid var(--line); border-radius: var(--radius-m); background: var(--surface); display: grid; gap: 2px; }
+.role-result { width: 100%; text-align: left; background: none; border: 0; padding: 8px 10px; border-radius: 8px; font: inherit; color: inherit; cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.role-result:hover, .role-result:focus-visible { background: var(--go-soft); outline: none; }
