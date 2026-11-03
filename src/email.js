@@ -7,7 +7,9 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { config } from './config.js';
 import { pickGroups } from './groups.js';
 
-const LABELS = { pm: 'Product / AI PM', support_engineer: 'Product Support Engineer', support_lead: 'Support Lead', csm: 'Customer Success' };
+const LABELS = { pm: 'Product / AI PM', support_engineer: 'Product Support Engineer', support_lead: 'Support Lead', csm: 'Customer Success', other: 'Other' };
+// The name the person gave the role in setup, else a short built-in name
+const roleLabel = (family, profile) => profile?.role_families?.find((r) => r.family === family)?.label || LABELS[family] || 'Role';
 
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -35,7 +37,7 @@ export function buildEmail(picks, stats, profile = {}) {
 
   const card = (j, i) => `
     <tr><td style="padding:16px 0;border-bottom:1px solid #e5e7eb">
-      <div style="font-size:12px;color:#6b7280;margin-bottom:4px">#${i + 1} · ${esc(LABELS[j.role_family] || j.role_family)} · ${j.fit_score}% match</div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:4px">#${i + 1} · ${esc(roleLabel(j.role_family, profile))} · ${j.fit_score}% match</div>
       <div style="font-size:17px;font-weight:600;color:#111827">${esc(j.title)}</div>
       <div style="font-size:14px;color:#374151;margin:2px 0 8px">${esc(j.company)} · ${esc(j.location || 'Remote')}${j.salary_text ? ` · ${esc(j.salary_text)}` : ''}</div>
       <div style="font-size:14px;color:#111827;line-height:1.5">${esc(j.why_fit)}</div>

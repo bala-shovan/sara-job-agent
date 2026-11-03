@@ -7,7 +7,11 @@ import { config } from './config.js';
 import { truncate, log } from './util.js';
 import { pickGroups, minFit } from './groups.js';
 
-const FAMILIES = ['pm', 'support_engineer', 'support_lead', 'csm', 'other'];
+// The roles a job can be filed under: the person's own roles, plus "other"
+const familiesFor = (profile) => [...(profile?.role_families || []).map((r) => r.family), 'other'];
+
+// Long resumes are trimmed so every scoring request stays small
+const MAX_PROFILE_CHARS = 6000;
 
 let fileProfileCache;
 // "About you" comes from the dashboard (profile.candidate_profile). The
@@ -208,10 +212,10 @@ export function heuristicScore(job, profile) {
   };
 }
 
-export function sanitize(result, job) {
+export function sanitize(result, job, families = familiesFor(null)) {
   const score = Math.max(0, Math.min(100, Math.round(Number(result?.fit_score) || 0)));
   return {
-    role_family: FAMILIES.includes(result?.role_family) ? result.role_family : job.role_family,
+    role_family: families.includes(result?.role_family) ? result.role_family : job.role_family,
     fit_score: score,
     why_fit: String(result?.why_fit || '').slice(0, 400),
     red_flags: String(result?.red_flags || '').slice(0, 300),
@@ -223,7 +227,8 @@ export async function scoreJobs(jobs, profile) {
   const errors = [];
   const scored = [];
   const hasAi = Boolean(config.geminiApiKey || config.groqApiKey);
-  const profileText = await candidateProfile(profile);
+  const profileText = truncate(await candidateProfile(profile), MAX_PROFILE_CHARS);
+  const families = familiesFor(profile);
   let provider = hasAi ? 'ai' : 'heuristic';
 
   for (let i = 0; i < jobs.length; i += config.scoringBatchSize) {
@@ -255,7 +260,7 @@ export async function scoreJobs(jobs, profile) {
       const r = results?.find((x) => Number(x.id) === idx);
       if (!results) provider = hasAi ? 'partial-heuristic' : 'heuristic';
       // scored_by tells the run whether a real AI judged this job
-      scored.push(r ? { ...job, ...sanitize(r, job), scored_by: 'ai' }
+      scored.push(r ? { ...job, ...sanitize(r, job, families), scored_by: 'ai' }
         : { ...job, ...heuristicScore(job, profile), scored_by: config.mock && Number.isFinite(job.mock_fit_score) ? 'ai' : 'heuristic' });
     });
   }
