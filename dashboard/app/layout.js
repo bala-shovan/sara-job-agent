@@ -1,8 +1,26 @@
 import './globals.css';
 
+const DESCRIPTION = 'A free AI agent that finds the right jobs for you. Every morning Sara scores 1,700+ remote jobs against your experience and emails you only the best matches.';
+
 export const metadata = {
+  metadataBase: new URL('https://sara-job-agent.vercel.app'),
   title: 'Sara, job search agent',
-  description: 'Sara finds the five best-matching jobs every morning and tracks each application from suggestion to offer.',
+  description: DESCRIPTION,
+  // The card LinkedIn, Slack and others show when someone shares the link
+  openGraph: {
+    type: 'website',
+    url: '/',
+    siteName: 'Sara',
+    title: 'Sara: an AI agent that finds the right jobs for you',
+    description: DESCRIPTION,
+    images: [{ url: '/og.png', width: 1200, height: 627, alt: 'Sara, an AI agent that finds the right jobs for you' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sara: an AI agent that finds the right jobs for you',
+    description: DESCRIPTION,
+    images: ['/og.png'],
+  },
 };
 
 export const viewport = {
