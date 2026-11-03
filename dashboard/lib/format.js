@@ -1,15 +1,31 @@
+import { catalogRole } from './roles';
+
 export const STATUSES = ['New', 'Applied', 'Interview scheduled', 'Offer', 'Rejected', 'Not interested'];
 
 // The main route a job travels; the last two statuses are exits.
 export const ROUTE = ['New', 'Applied', 'Interview scheduled', 'Offer'];
 
-export const FAMILY_LABELS = {
+// Short names for the original roles; any other role uses the name the
+// person gave it in setup, then the catalog's name
+const SHORT_LABELS = {
   pm: 'Product / AI PM',
   support_engineer: 'Product Support Engineer',
   support_lead: 'Support Lead',
   csm: 'Customer Success',
   other: 'Other',
 };
+
+export function familyLabel(family, profile) {
+  if (!family) return 'Role';
+  return profile?.role_families?.find((r) => r.family === family)?.label
+    || SHORT_LABELS[family] || catalogRole(family)?.label || 'Role';
+}
+
+// Role choices for a job: the person's own roles, plus Other
+export function familyOptions(profile) {
+  const mine = (profile?.role_families || []).map((r) => [r.family, r.label]);
+  return [...(mine.length ? mine : Object.entries(SHORT_LABELS).filter(([k]) => k !== 'other')), ['other', 'Other']];
+}
 
 const TZ = 'Asia/Dhaka';
 

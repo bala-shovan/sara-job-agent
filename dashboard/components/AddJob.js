@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { FAMILY_LABELS } from '../lib/format';
+import { familyOptions } from '../lib/format';
 
 const blank = { url: '', title: '', company: '', location: '', role_family: 'pm', status: 'New', notes: '' };
 
 export default function AddJob({ sara, goTo }) {
-  const [form, setForm] = useState(blank);
+  const fresh = () => ({ ...blank, role_family: familyOptions(sara.profile)[0][0] });
+  const [form, setForm] = useState(fresh);
   const [saving, setSaving] = useState(false);
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -25,7 +26,7 @@ export default function AddJob({ sara, goTo }) {
     setSaving(false);
     if (ok) {
       sara.notify(`Added ${form.title} at ${form.company}.`);
-      setForm(blank);
+      setForm(fresh());
       goTo('pipeline');
     }
   }
@@ -62,7 +63,7 @@ export default function AddJob({ sara, goTo }) {
           <div className="field">
             <label htmlFor="family">Role type</label>
             <select id="family" value={form.role_family} onChange={set('role_family')}>
-              {Object.entries(FAMILY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              {familyOptions(sara.profile).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
           <div className="field">

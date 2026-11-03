@@ -1,6 +1,6 @@
 'use client';
 
-import { FAMILY_LABELS } from '../lib/format';
+import { familyLabel } from '../lib/format';
 import JobActions from './JobActions';
 import { Flag } from './Icons';
 
@@ -18,7 +18,7 @@ export default function PickCard({ job, sara, children }) {
           <span>{job.company}</span>
           <span>{job.location || 'Remote'}</span>
           {job.salary_text && <span>{job.salary_text}</span>}
-          <span>{FAMILY_LABELS[job.role_family] || 'Role'}</span>
+          <span>{familyLabel(job.role_family, sara.profile)}</span>
         </div>
         {children}
         {job.why_fit && <p className="why">{job.why_fit}</p>}

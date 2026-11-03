@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ROUTE, STATUSES, FAMILY_LABELS, shortDate, daysAgo } from '../lib/format';
+import { ROUTE, STATUSES, familyLabel, shortDate, daysAgo } from '../lib/format';
 import JobActions from './JobActions';
 
 function Track({ job }) {
@@ -57,7 +57,7 @@ function Row({ job, sara }) {
         <div className="row-detail">
           <Track job={job} />
           {job.why_fit && <p>{job.why_fit}</p>}
-          {job.role_family && <p className="meta">{FAMILY_LABELS[job.role_family]}{job.location ? `, ${job.location}` : ''}</p>}
+          {job.role_family && <p className="meta">{familyLabel(job.role_family, sara.profile)}{job.location ? `, ${job.location}` : ''}</p>}
           <div className="field">
             <label htmlFor={`notes-${job.id}`}>Notes</label>
             <textarea

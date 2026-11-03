@@ -1,14 +1,8 @@
 // Turning the Hire / Settings forms into Sara's profile row, and back.
 
-export const ROLE_CATALOG = [
-  { family: 'pm', label: 'Product Manager / AI PM',
-    keywords: ['product manager', 'product owner', 'ai product', 'technical product manager', 'product lead'] },
-  { family: 'support_engineer', label: 'Product Support Engineer',
-    keywords: ['product support engineer', 'technical support engineer', 'support engineer', 'application support'] },
-  { family: 'support_lead', label: 'Support Lead',
-    keywords: ['support lead', 'support team lead', 'support manager', 'technical support manager'] },
-  { family: 'csm', label: 'Customer Success Manager', keywords: ['customer success manager'] },
-];
+import { ROLE_CATALOG } from './roles';
+
+export { ROLE_CATALOG };
 
 // Bonus by priority position: the first role ranks highest
 export const PRIORITY_BONUS = [15, 10, 5, 0];
@@ -48,9 +42,8 @@ export function blankProfile(email = '') {
   return {
     display_name: '',
     candidate_profile: '',
-    role_families: ROLE_CATALOG.slice(0, 1).map((r, i) => ({
-      priority: i + 1, family: r.family, label: r.label, bonus: PRIORITY_BONUS[i], title_keywords: r.keywords,
-    })),
+    // Chosen on the Jobs you want step, from suggestions, search or their own
+    role_families: [],
     seniority: ['mid', 'senior'],
     locations: { remote_allowed: ['worldwide', 'anywhere'], onsite_cities: [] },
     exclusions: { drop_us_only_remote: false, drop_title_words: ['intern', 'internship', 'junior', 'entry level', 'director', 'vp', 'vice president', 'head of'] },
@@ -81,11 +74,8 @@ export const DEFAULT_WATCHLIST = [
 
 export function draftFromProfile(p) {
   const chosen = [...(p.role_families || [])].sort((a, b) => a.priority - b.priority);
-  const roles = [
-    ...chosen.map((r) => ({ family: r.family, label: r.label, enabled: true, keywords: toText(r.title_keywords) })),
-    ...ROLE_CATALOG.filter((c) => !chosen.some((r) => r.family === c.family))
-      .map((c) => ({ family: c.family, label: c.label, enabled: false, keywords: toText(c.keywords) })),
-  ];
+  // Only the roles this person picked, in priority order
+  const roles = chosen.map((r) => ({ family: r.family, label: r.label, enabled: true, keywords: toText(r.title_keywords) }));
   const seniority = p.seniority?.length ? p.seniority : ['mid', 'senior', 'lead'];
   const auto = new Set(autoSkipWords(seniority));
   return {
