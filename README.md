@@ -4,6 +4,10 @@ Sara is a free job-search agent anyone can **hire from a dashboard** (up to 50 p
 
 Built by Anik Shovan (Bala) as a portfolio project: from PRD to architecture to a shipped, working agent.
 
+**[Try Sara free →](https://sara-job-agent.vercel.app)** · [Explore the demo with sample jobs](https://sara-job-agent.vercel.app/#demo)
+
+![Sara's Today page: the morning's picks split into Product and Technical Support, each with a match score and why it fits](docs/dashboard-today.png)
+
 ## How Sara works
 
 ```
@@ -102,6 +106,10 @@ In production, GitHub Actions runs `npm start` daily. To run Sara on demand: **A
 - **Supabase** pauses free projects after about a week of low activity; Sara's daily writes keep it active.
 - **GitHub** disables scheduled workflows in public repos after 60 days without repository activity. GitHub emails a warning first; re-enable with one click in the Actions tab, or push any commit.
 - **Gemini** free-tier limits can change. Switch models with `GEMINI_MODEL`, or add `GROQ_API_KEY` as a fallback.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ## Roadmap
 
