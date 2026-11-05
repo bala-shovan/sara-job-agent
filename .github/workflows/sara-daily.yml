@@ -2,15 +2,20 @@ name: Sara daily run
 
 on:
   schedule:
-    # Sara wakes every hour and checks each person's schedule from the
-    # dashboard (time, days, time zone, paused or on duty), then works only
-    # for those who are due. Most wake-ups finish in seconds. Minute 17
-    # avoids GitHub's busy top of the hour.
+    # Backup timer only. GitHub often skips or delays these by hours, so the
+    # main alarm clock is Supabase (supabase/009_alarm_clock.sql), which
+    # dispatches this workflow every 15 minutes with force = false. Each wake
+    # checks every person's schedule (time, days, time zone) and works only
+    # for those who are due.
     - cron: "17 * * * *"
   # "Run workflow" button: runs on-duty Saras right now, whatever the schedule says.
   # Fill in "only" with someone's alert email to run just their Sara.
   workflow_dispatch:
     inputs:
+      force:
+        description: "Run every on-duty Sara now, whatever their schedule. Untick to run only the people who are due (this is what the Supabase alarm clock sends)."
+        type: boolean
+        default: true
       only:
         description: "Run only this person's Sara (their alert email). Leave empty to run everyone on duty."
         required: false
@@ -41,7 +46,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-          SARA_FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
+          SARA_FORCE: ${{ (github.event_name == 'workflow_dispatch' && inputs.force) && '1' || '0' }}
 
       - if: steps.due.outputs.due == 'true'
         run: npm ci
@@ -61,5 +66,5 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
-          SARA_FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
+          SARA_FORCE: ${{ (github.event_name == 'workflow_dispatch' && inputs.force) && '1' || '0' }}
           SARA_ONLY: ${{ github.event.inputs.only }}
